@@ -1,0 +1,488 @@
+/* File Browser Specific Styles */
+/* Extends shared.css with file browser-specific styling */
+
+/* ========================================
+   File Browser Container
+   ======================================== */
+.browser-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 73px);
+}
+
+.browser-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ========================================
+   Breadcrumb Navigation
+   ======================================== */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  overflow-x: auto;
+  padding: 8px 16px;
+  background: var(--bg-accent);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.breadcrumb-item:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.breadcrumb-item.current {
+  color: var(--text-primary);
+  font-weight: 500;
+  cursor: default;
+}
+
+.breadcrumb-item.current:hover {
+  background: transparent;
+}
+
+.breadcrumb-separator {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* ========================================
+   File List
+   ======================================== */
+.file-list {
+  flex: 1;
+  overflow: auto;
+  padding: 8px;
+}
+
+.file-list-header {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) 100px 150px 100px;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.file-list-header span {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.file-list-header span:hover {
+  color: var(--text-primary);
+}
+
+.file-list-header .sort-icon {
+  font-size: 10px;
+  opacity: 0.5;
+}
+
+.file-list-header .sort-icon.active {
+  opacity: 1;
+  color: var(--button-primary);
+}
+
+/* ========================================
+   File Item
+   ======================================== */
+.file-item {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) 100px 150px 100px;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-items: center;
+}
+
+.file-item:hover {
+  background: var(--row-hover);
+}
+
+.file-item.selected {
+  background: rgba(66, 133, 244, 0.1);
+  outline: 2px solid var(--button-primary);
+}
+
+.file-item-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+.file-item-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-item-size,
+.file-item-modified,
+.file-item-type {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ========================================
+   File Icons
+   ======================================== */
+.file-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.file-icon.folder {
+  color: #ffc107;
+}
+
+.file-icon.file {
+  color: var(--text-secondary);
+}
+
+.file-icon.csv {
+  color: #28a745;
+}
+
+.file-icon.json {
+  color: #fd7e14;
+}
+
+.file-icon.txt {
+  color: var(--text-muted);
+}
+
+.file-icon.image {
+  color: #e91e63;
+}
+
+.file-icon.pdf {
+  color: #dc3545;
+}
+
+.file-icon.code {
+  color: #6f42c1;
+}
+
+/* ========================================
+   Grid View
+   ======================================== */
+.file-list.grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+.file-list.grid-view .file-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px 16px;
+  gap: 12px;
+}
+
+.file-list.grid-view .file-icon {
+  font-size: 48px;
+}
+
+.file-list.grid-view .file-item-name {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.file-list.grid-view .file-item-name span {
+  max-width: 120px;
+}
+
+.file-list.grid-view .file-item-size,
+.file-list.grid-view .file-item-modified,
+.file-list.grid-view .file-item-type {
+  display: none;
+}
+
+/* ========================================
+   View Toggle
+   ======================================== */
+.view-mode-toggle {
+  display: flex;
+  background: var(--bg-accent);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.view-mode-btn {
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-mode-btn:hover {
+  color: var(--text-primary);
+}
+
+.view-mode-btn.active {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  box-shadow: var(--shadow);
+}
+
+/* ========================================
+   Search in Files
+   ======================================== */
+.browser-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 400px;
+}
+
+.browser-search-input {
+  flex: 1;
+  padding: 8px 12px;
+  padding-left: 36px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.browser-search-input:focus {
+  outline: 2px solid var(--button-primary);
+  border-color: var(--button-primary);
+}
+
+.browser-search-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.browser-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* ========================================
+   Context Menu
+   ======================================== */
+.context-menu {
+  position: fixed;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
+  z-index: 1000;
+  padding: 8px 0;
+}
+
+[data-theme="dark"] .context-menu {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: background 0.15s ease;
+}
+
+.context-menu-item:hover {
+  background: var(--bg-accent);
+}
+
+.context-menu-item.danger {
+  color: var(--button-danger);
+}
+
+.context-menu-item.danger:hover {
+  background: rgba(220, 53, 69, 0.1);
+}
+
+.context-menu-separator {
+  height: 1px;
+  background: var(--border-color);
+  margin: 8px 0;
+}
+
+.context-menu-item-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+/* ========================================
+   Empty Folder State
+   ======================================== */
+.browser-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 32px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.browser-empty-icon {
+  font-size: 64px;
+  margin-bottom: 24px;
+  opacity: 0.5;
+}
+
+.browser-empty-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.browser-empty-description {
+  font-size: 14px;
+  max-width: 300px;
+}
+
+/* ========================================
+   Loading State
+   ======================================== */
+.browser-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 32px;
+  gap: 16px;
+}
+
+.browser-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--button-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.browser-loading-text {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* ========================================
+   Quick Access / Favorites
+   ======================================== */
+.quick-access {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.quick-access-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.quick-access-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.quick-access-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-accent);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-access-item:hover {
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow);
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+@media (max-width: 768px) {
+  .file-list-header {
+    display: none;
+  }
+
+  .file-item {
+    grid-template-columns: 1fr auto;
+  }
+
+  .file-item-type,
+  .file-item-modified {
+    display: none;
+  }
+
+  .breadcrumb {
+    padding: 8px 12px;
+  }
+
+  .breadcrumb-item {
+    padding: 4px 6px;
+    font-size: 13px;
+  }
+}

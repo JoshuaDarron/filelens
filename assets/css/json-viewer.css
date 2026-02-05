@@ -1,0 +1,209 @@
+/* JSON Viewer Specific Styles */
+/* Extends shared.css with JSON-specific styling */
+
+/* ========================================
+   JSON Container
+   ======================================== */
+.json-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.json-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.json-wrapper {
+  flex: 1;
+  overflow: auto;
+  max-height: calc(100vh - 121px);
+  padding: 16px;
+}
+
+/* ========================================
+   JSON Tree View
+   ======================================== */
+.json-tree {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.json-node {
+  margin-left: 20px;
+  position: relative;
+}
+
+.json-node::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border-color);
+}
+
+.json-key {
+  color: var(--button-primary);
+  font-weight: 500;
+}
+
+.json-value {
+  color: var(--text-primary);
+}
+
+.json-value.string {
+  color: #28a745;
+}
+
+.json-value.number {
+  color: #fd7e14;
+}
+
+.json-value.boolean {
+  color: #6f42c1;
+}
+
+.json-value.null {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+[data-theme="dark"] .json-value.string {
+  color: #98c379;
+}
+
+[data-theme="dark"] .json-value.number {
+  color: #d19a66;
+}
+
+[data-theme="dark"] .json-value.boolean {
+  color: #c678dd;
+}
+
+/* ========================================
+   Collapsible Sections
+   ======================================== */
+.json-collapsible {
+  cursor: pointer;
+  user-select: none;
+}
+
+.json-collapsible::before {
+  content: '\25BC';
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  transition: transform 0.2s ease;
+  color: var(--text-muted);
+}
+
+.json-collapsible.collapsed::before {
+  transform: rotate(-90deg);
+}
+
+.json-collapsible.collapsed + .json-node {
+  display: none;
+}
+
+/* ========================================
+   JSON Bracket Styling
+   ======================================== */
+.json-bracket {
+  color: var(--text-secondary);
+}
+
+.json-bracket.opening {
+  margin-left: 4px;
+}
+
+.json-ellipsis {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ========================================
+   JSON Search
+   ======================================== */
+.json-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.json-search-input {
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 200px;
+}
+
+.json-search-input:focus {
+  outline: 2px solid var(--button-primary);
+  border-color: var(--button-primary);
+}
+
+.json-highlight {
+  background: rgba(255, 235, 59, 0.4);
+  border-radius: 2px;
+}
+
+[data-theme="dark"] .json-highlight {
+  background: rgba(255, 235, 59, 0.2);
+}
+
+/* ========================================
+   JSON Path Breadcrumb
+   ======================================== */
+.json-path {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  background: var(--bg-accent);
+  border-bottom: 1px solid var(--border-color);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.json-path-segment {
+  color: var(--button-primary);
+  cursor: pointer;
+}
+
+.json-path-segment:hover {
+  text-decoration: underline;
+}
+
+.json-path-separator {
+  color: var(--text-muted);
+}
+
+/* ========================================
+   Raw JSON View
+   ======================================== */
+.json-raw {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+}

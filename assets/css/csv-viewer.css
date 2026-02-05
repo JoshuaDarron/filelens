@@ -1,0 +1,146 @@
+/* CSV Viewer Specific Styles */
+/* Extends shared.css with CSV/table-specific styling */
+
+/* ========================================
+   Table Container
+   ======================================== */
+.table-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.table-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.table-wrapper {
+  flex: 1;
+  overflow: auto;
+  max-height: calc(100vh - 121px);
+}
+
+/* ========================================
+   Table Styles
+   ======================================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th, td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  min-width: 120px;
+  position: relative;
+}
+
+th {
+  background: var(--header-bg);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  overflow: hidden;
+}
+
+tr:hover {
+  background: var(--row-hover);
+}
+
+/* ========================================
+   Cell Input (Editable Cells)
+   ======================================== */
+.cell-input {
+  border: none;
+  background: transparent;
+  padding: 4px;
+  font-size: 14px;
+  color: var(--text-primary);
+  width: 100%;
+  min-width: 100px;
+}
+
+.cell-input:focus {
+  outline: 2px solid var(--button-primary);
+  background: var(--input-bg);
+  border-radius: 4px;
+}
+
+/* ========================================
+   Column Resize Handle
+   ======================================== */
+.resize-handle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 5px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 11;
+}
+
+.resize-handle:hover {
+  background: var(--button-primary);
+  opacity: 0.5;
+}
+
+body.col-resizing {
+  cursor: col-resize !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body.col-resizing * {
+  cursor: col-resize !important;
+}
+
+/* ========================================
+   Row Numbers (Optional)
+   ======================================== */
+.row-number {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+  min-width: 50px;
+  max-width: 50px;
+  user-select: none;
+}
+
+/* ========================================
+   Cell Selection States
+   ======================================== */
+td.selected {
+  background: rgba(66, 133, 244, 0.1);
+  outline: 2px solid var(--button-primary);
+}
+
+td.modified {
+  background: rgba(40, 167, 69, 0.1);
+}
+
+/* ========================================
+   Table Empty State
+   ======================================== */
+.table-empty {
+  padding: 48px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.table-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}

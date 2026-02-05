@@ -1,0 +1,306 @@
+/* TXT/Markdown Viewer Specific Styles */
+/* Extends shared.css with text file-specific styling */
+
+/* ========================================
+   Text Container
+   ======================================== */
+.txt-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.txt-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.txt-wrapper {
+  flex: 1;
+  overflow: auto;
+  max-height: calc(100vh - 121px);
+  display: flex;
+}
+
+/* ========================================
+   Line Numbers
+   ======================================== */
+.line-numbers {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  padding: 16px 12px;
+  text-align: right;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  user-select: none;
+  min-width: 50px;
+}
+
+.line-number {
+  display: block;
+}
+
+.line-number.active {
+  color: var(--text-primary);
+  background: var(--bg-accent);
+}
+
+/* ========================================
+   Text Content
+   ======================================== */
+.txt-content {
+  flex: 1;
+  padding: 16px;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  tab-size: 4;
+}
+
+.txt-content-editable {
+  outline: none;
+  min-height: 100%;
+}
+
+.txt-content-editable:focus {
+  background: var(--bg-primary);
+}
+
+/* ========================================
+   Text Line
+   ======================================== */
+.txt-line {
+  display: block;
+  min-height: 1.6em;
+}
+
+.txt-line:hover {
+  background: var(--row-hover);
+}
+
+.txt-line.highlighted {
+  background: rgba(66, 133, 244, 0.1);
+}
+
+/* ========================================
+   Word Wrap Toggle
+   ======================================== */
+.txt-content.no-wrap {
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* ========================================
+   Markdown Rendered View
+   ======================================== */
+.markdown-content {
+  flex: 1;
+  padding: 24px 32px;
+  max-width: 900px;
+  line-height: 1.7;
+}
+
+.markdown-content h1 {
+  font-size: 2em;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.markdown-content h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin: 24px 0 16px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.markdown-content h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin: 20px 0 12px 0;
+}
+
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  font-weight: 600;
+  margin: 16px 0 8px 0;
+}
+
+.markdown-content p {
+  margin: 0 0 16px 0;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin: 0 0 16px 0;
+  padding-left: 24px;
+}
+
+.markdown-content li {
+  margin-bottom: 4px;
+}
+
+.markdown-content code {
+  background: var(--bg-accent);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.markdown-content pre {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  overflow-x: auto;
+  margin: 0 0 16px 0;
+}
+
+.markdown-content pre code {
+  background: none;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.markdown-content blockquote {
+  margin: 0 0 16px 0;
+  padding: 12px 16px;
+  border-left: 4px solid var(--button-primary);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
+.markdown-content a {
+  color: var(--button-primary);
+  text-decoration: none;
+}
+
+.markdown-content a:hover {
+  text-decoration: underline;
+}
+
+.markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 16px 0;
+}
+
+.markdown-content th,
+.markdown-content td {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.markdown-content th {
+  background: var(--bg-secondary);
+  font-weight: 600;
+}
+
+.markdown-content hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 24px 0;
+}
+
+.markdown-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+/* ========================================
+   View Toggle (Raw/Rendered)
+   ======================================== */
+.view-toggle {
+  display: flex;
+  background: var(--bg-accent);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.view-toggle-btn {
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.view-toggle-btn:hover {
+  color: var(--text-primary);
+}
+
+.view-toggle-btn.active {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  box-shadow: var(--shadow);
+}
+
+/* ========================================
+   Search & Find
+   ======================================== */
+.txt-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--bg-accent);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.txt-search-input {
+  flex: 1;
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 4px;
+  font-size: 14px;
+  max-width: 300px;
+}
+
+.txt-search-input:focus {
+  outline: 2px solid var(--button-primary);
+  border-color: var(--button-primary);
+}
+
+.txt-search-count {
+  color: var(--text-secondary);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.txt-highlight {
+  background: rgba(255, 235, 59, 0.4);
+  border-radius: 2px;
+}
+
+.txt-highlight.current {
+  background: rgba(255, 152, 0, 0.6);
+}
+
+[data-theme="dark"] .txt-highlight {
+  background: rgba(255, 235, 59, 0.2);
+}
+
+[data-theme="dark"] .txt-highlight.current {
+  background: rgba(255, 152, 0, 0.4);
+}
