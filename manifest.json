@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "CSViewer",
-  "version": "1.0.0",
-  "description": "View, edit and export CSV files with light/dark mode support",
+  "name": "FileLens",
+  "version": "2.0.0",
+  "description": "View, edit and export CSV, JSON, TXT, and Markdown files with light/dark mode support",
   "permissions": [
     "activeTab",
     "webNavigation"
@@ -11,7 +11,7 @@
     "file:///*"
   ],
   "action": {
-    "default_title": "Open CSViewer"
+    "default_title": "Open FileLens"
   },
   "background": {
     "service_worker": "assets/js/background.js"
@@ -21,8 +21,20 @@
       "matches": [
         "*://*/*.csv",
         "*://*/*.csv?*",
+        "*://*/*.json",
+        "*://*/*.json?*",
+        "*://*/*.txt",
+        "*://*/*.txt?*",
+        "*://*/*.md",
+        "*://*/*.md?*",
         "file:///*.csv",
-        "file:///*.CSV"
+        "file:///*.CSV",
+        "file:///*.json",
+        "file:///*.JSON",
+        "file:///*.txt",
+        "file:///*.TXT",
+        "file:///*.md",
+        "file:///*.MD"
       ],
       "js": ["assets/js/content.js"],
       "all_frames": true,
@@ -32,14 +44,10 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "viewer.html",
-        "assets/js/viewer.js",
-        "assets/css/viewer.css",
-        "assets/css/shared.css",
-        "assets/css/csv-viewer.css",
-        "assets/css/json-viewer.css",
-        "assets/css/txt-viewer.css",
-        "assets/css/file-browser.css"
+        "index.html",
+        "assets/js/*.js",
+        "assets/css/*.css",
+        "assets/images/pngs/*"
       ],
       "matches": ["<all_urls>", "file:///*"]
     }

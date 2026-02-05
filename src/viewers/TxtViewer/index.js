@@ -1,0 +1,1 @@
+export { TxtViewer } from './TxtViewer'
