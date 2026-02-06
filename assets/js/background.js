@@ -15,8 +15,7 @@ const TEXT_EXTENSIONS = new Set([
   'go', 'rs', 'rb', 'php', 'swift', 'kt', 'scala', 'r', 'pl', 'lua',
   'dart', 'zig', 'ex', 'exs', 'hs', 'ml', 'clj', 'lisp', 'vim', 'v', 'm',
   // Web / markup
-  'html', 'htm', 'css', 'scss', 'sass', 'less', 'xml', 'xsl', 'svg',
-  'vue', 'svelte', 'astro',
+  'css', 'scss', 'sass', 'less', 'vue', 'svelte', 'astro',
   // Config
   'yaml', 'yml', 'toml', 'ini', 'cfg', 'conf', 'properties', 'env',
   'editorconfig', 'gitignore', 'gitattributes', 'dockerignore',
