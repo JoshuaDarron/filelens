@@ -1,10 +1,16 @@
 import { useContext, useEffect, useCallback, useState, useMemo } from 'react'
+import { marked } from 'marked'
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { useFileLoader } from '../../hooks/useFileLoader'
 import { Header } from '../../components/Header'
 import { EmptyState } from '../../components/EmptyState'
 import { downloadFile, saveFile } from '../../utils/fileHelpers'
+
+marked.setOptions({
+  breaks: true,
+  gfm: true
+})
 
 export function TxtViewer() {
   const {
@@ -20,14 +26,29 @@ export function TxtViewer() {
 
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
-  const [viewMode, setViewMode] = useState('raw') // 'raw' or 'rendered' (for markdown)
+  const [viewMode, setViewMode] = useState(null) // null until file loads; 'edit' | 'split' | 'preview' for md, 'raw' for txt
   const [wordWrap, setWordWrap] = useState(true)
 
   const isMarkdown = fileType === 'md'
+
+  // Set default view mode when file type changes
+  useEffect(() => {
+    setViewMode(isMarkdown ? 'split' : 'raw')
+  }, [isMarkdown])
+
   const lines = useMemo(() => {
     if (!fileData) return []
     return fileData.split('\n')
   }, [fileData])
+
+  const renderedHtml = useMemo(() => {
+    if (!fileData || !isMarkdown) return ''
+    return marked.parse(fileData)
+  }, [fileData, isMarkdown])
+
+  const handleEditorChange = useCallback((e) => {
+    updateData(e.target.value)
+  }, [updateData])
 
   const processText = useCallback((text, fname, type, handle = null, url = null) => {
     loadFile(text, fname, type, handle, url)
@@ -191,42 +212,73 @@ export function TxtViewer() {
         {isMarkdown && (
           <div className="view-toggle">
             <button
-              className={`view-toggle-btn ${viewMode === 'raw' ? 'active' : ''}`}
-              onClick={() => setViewMode('raw')}
+              className={`view-toggle-btn ${viewMode === 'edit' ? 'active' : ''}`}
+              onClick={() => setViewMode('edit')}
             >
-              Raw
+              Edit
             </button>
             <button
-              className={`view-toggle-btn ${viewMode === 'rendered' ? 'active' : ''}`}
-              onClick={() => setViewMode('rendered')}
+              className={`view-toggle-btn ${viewMode === 'split' ? 'active' : ''}`}
+              onClick={() => setViewMode('split')}
+            >
+              Split
+            </button>
+            <button
+              className={`view-toggle-btn ${viewMode === 'preview' ? 'active' : ''}`}
+              onClick={() => setViewMode('preview')}
             >
               Preview
             </button>
           </div>
         )}
-        <button
-          className={`btn btn-outline ${!wordWrap ? 'active' : ''}`}
-          onClick={() => setWordWrap(!wordWrap)}
-          title="Toggle word wrap"
-        >
-          <i className="bi bi-text-wrap"></i>
-        </button>
+        {!isMarkdown && (
+          <button
+            className={`btn btn-outline ${!wordWrap ? 'active' : ''}`}
+            onClick={() => setWordWrap(!wordWrap)}
+            title="Toggle word wrap"
+          >
+            <i className="bi bi-text-wrap"></i>
+          </button>
+        )}
       </Header>
       <main className="main-content">
-        <div className="txt-container">
-          <div className="txt-wrapper">
-            <div className="line-numbers">
-              {lines.map((_, index) => (
-                <span key={index} className="line-number">{index + 1}</span>
-              ))}
-            </div>
-            <div className={`txt-content ${!wordWrap ? 'no-wrap' : ''}`}>
-              {lines.map((line, index) => (
-                <span key={index} className="txt-line">{line || '\u00A0'}</span>
-              ))}
+        {isMarkdown ? (
+          <div className={`md-split-container md-mode-${viewMode}`}>
+            {(viewMode === 'edit' || viewMode === 'split') && (
+              <div className="md-editor-pane">
+                <textarea
+                  className="md-editor-textarea"
+                  value={fileData}
+                  onChange={handleEditorChange}
+                  spellCheck={false}
+                />
+              </div>
+            )}
+            {(viewMode === 'preview' || viewMode === 'split') && (
+              <div className="md-preview-pane">
+                <div
+                  className="markdown-content"
+                  dangerouslySetInnerHTML={{ __html: renderedHtml }}
+                />
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="txt-container">
+            <div className="txt-wrapper">
+              <div className="line-numbers">
+                {lines.map((_, index) => (
+                  <span key={index} className="line-number">{index + 1}</span>
+                ))}
+              </div>
+              <div className={`txt-content ${!wordWrap ? 'no-wrap' : ''}`}>
+                {lines.map((line, index) => (
+                  <span key={index} className="txt-line">{line || '\u00A0'}</span>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </main>
     </>
   )
