@@ -170,7 +170,15 @@ export function TxtViewer() {
           processText(text, fname, type, null, txtUrl)
         } catch (error) {
           toast.hide(loadingId)
-          toast.error(`Error loading file: ${error.message}`)
+          if (txtUrl.startsWith('file://')) {
+            toast.error(
+              'Unable to load local file. Please ensure "Allow access to file URLs" is enabled in the extension settings.',
+              'File Access Error',
+              { duration: 10000 }
+            )
+          } else {
+            toast.error(`Error loading file: ${error.message}`)
+          }
         }
       }
       loadFromURL()

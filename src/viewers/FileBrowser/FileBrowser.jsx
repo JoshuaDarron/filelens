@@ -27,7 +27,14 @@ function parseDirectoryListing(html, baseUrl) {
     const kind = isDir === '1' ? 'directory' : 'file'
 
     // rawBytes is the URL-encoded path segment for the entry
-    const entryUrl = new URL(rawBytes, baseUrl).href
+    // Ensure baseUrl ends with '/' so relative paths resolve correctly
+    const normalizedBase = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'
+    let entryUrl = new URL(rawBytes, normalizedBase).href
+
+    // Directory URLs must end with '/' for correct child path resolution
+    if (kind === 'directory' && !entryUrl.endsWith('/')) {
+      entryUrl += '/'
+    }
 
     const entry = {
       name,
