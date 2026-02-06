@@ -7,54 +7,48 @@ import { formatFileSize } from '../../utils/fileHelpers'
 function parseDirectoryListing(html, baseUrl) {
   const entries = []
 
-  // Chrome's directory listing uses addRow() calls in a script tag
-  // Format: addRow("name","url","isdir","size","date","time")
-  const addRowRegex = /addRow\("([^"]*?)","([^"]*?)",(\d),(?:"([^"]*?)")?,(?:"([^"]*?)")?,(?:"([^"]*?)")?\)/g
+  // Chrome's addRow() format (7 params):
+  // addRow("name", "rawBytes", isDir, sizeBytes, "sizeStr", modifiedTimestamp, "modifiedStr")
+  // - name/rawBytes: JSON-escaped strings (quoted)
+  // - isDir: 0 or 1 (unquoted int)
+  // - sizeBytes: raw byte count or negative (unquoted int)
+  // - sizeStr: human-readable size (quoted)
+  // - modifiedTimestamp: unix epoch seconds or 0 (unquoted int)
+  // - modifiedStr: formatted date string (quoted)
+  const addRowRegex = /addRow\("([^"]*?)","([^"]*?)",(\d),([-\d]+),"([^"]*?)",([\d]+),"([^"]*?)"\)/g
   let match
 
   while ((match = addRowRegex.exec(html)) !== null) {
-    const [, name, url, isDir, size, date, time] = match
+    const [, name, rawBytes, isDir, sizeBytes, , timestamp] = match
 
     // Skip parent directory link
     if (name === '..') continue
 
     const kind = isDir === '1' ? 'directory' : 'file'
 
-    // Build full URL for the entry
-    const entryUrl = new URL(url, baseUrl).href
+    // rawBytes is the URL-encoded path segment for the entry
+    const entryUrl = new URL(rawBytes, baseUrl).href
 
     const entry = {
-      name: decodeURIComponent(name),
+      name,
       kind,
       url: entryUrl
     }
 
-    if (kind === 'file' && size) {
-      entry.size = parseFileSizeString(size)
+    const size = parseInt(sizeBytes, 10)
+    if (kind === 'file' && size >= 0) {
+      entry.size = size
     }
 
-    if (date && time) {
-      try {
-        entry.modified = new Date(`${date} ${time}`).getTime()
-      } catch {
-        // Ignore invalid dates
-      }
+    const ts = parseInt(timestamp, 10)
+    if (ts > 0) {
+      entry.modified = ts * 1000 // Convert seconds to milliseconds
     }
 
     entries.push(entry)
   }
 
   return entries
-}
-
-// Parse size strings like "4.0 kB", "1.2 MB" from Chrome's listing
-function parseFileSizeString(sizeStr) {
-  const match = sizeStr.match(/([\d.]+)\s*(B|kB|MB|GB|TB)?/i)
-  if (!match) return 0
-  const value = parseFloat(match[1])
-  const unit = (match[2] || 'B').toUpperCase()
-  const multipliers = { B: 1, KB: 1024, MB: 1024 ** 2, GB: 1024 ** 3, TB: 1024 ** 4 }
-  return Math.round(value * (multipliers[unit] || 1))
 }
 
 // Build breadcrumb segments from a file:// URL
