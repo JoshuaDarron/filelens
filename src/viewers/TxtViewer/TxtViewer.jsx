@@ -1,4 +1,4 @@
-import { useContext, useEffect, useCallback, useState, useMemo } from 'react'
+import { useContext, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { marked } from 'marked'
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
@@ -30,6 +30,28 @@ export function TxtViewer() {
   const [wordWrap, setWordWrap] = useState(true)
 
   const isMarkdown = fileType === 'md'
+
+  // Synchronous scrolling for split mode
+  const editorRef = useRef(null)
+  const previewRef = useRef(null)
+  const scrollingRef = useRef(null)
+
+  const handleSyncScroll = useCallback((source) => {
+    if (scrollingRef.current && scrollingRef.current !== source) return
+    scrollingRef.current = source
+
+    const editor = editorRef.current
+    const preview = previewRef.current
+    if (!editor || !preview) return
+
+    const sourceEl = source === 'editor' ? editor : preview
+    const targetEl = source === 'editor' ? preview : editor
+
+    const scrollRatio = sourceEl.scrollTop / (sourceEl.scrollHeight - sourceEl.clientHeight || 1)
+    targetEl.scrollTop = scrollRatio * (targetEl.scrollHeight - targetEl.clientHeight)
+
+    requestAnimationFrame(() => { scrollingRef.current = null })
+  }, [])
 
   // Set default view mode when file type changes
   useEffect(() => {
@@ -255,15 +277,21 @@ export function TxtViewer() {
             {(viewMode === 'edit' || viewMode === 'split') && (
               <div className="md-editor-pane">
                 <textarea
+                  ref={editorRef}
                   className="md-editor-textarea"
                   value={fileData}
                   onChange={handleEditorChange}
+                  onScroll={viewMode === 'split' ? () => handleSyncScroll('editor') : undefined}
                   spellCheck={false}
                 />
               </div>
             )}
             {(viewMode === 'preview' || viewMode === 'split') && (
-              <div className="md-preview-pane">
+              <div
+                className="md-preview-pane"
+                ref={previewRef}
+                onScroll={viewMode === 'split' ? () => handleSyncScroll('preview') : undefined}
+              >
                 <div
                   className="markdown-content"
                   dangerouslySetInnerHTML={{ __html: renderedHtml }}
