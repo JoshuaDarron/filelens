@@ -16,7 +16,9 @@ function App() {
     const url = urlParams.get('url')
     const type = urlParams.get('type')
 
-    if (type) {
+    if (type === 'directory') {
+      setActiveViewer('browser')
+    } else if (type) {
       // Explicit type parameter takes precedence
       setActiveViewer(type)
     } else if (url) {
@@ -52,6 +54,9 @@ function App() {
   }, [detectFileType, loadFile])
 
   const renderViewer = () => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const dirUrl = urlParams.get('type') === 'directory' ? urlParams.get('url') : null
+
     switch (activeViewer) {
       case 'json':
         return <JsonViewer />
@@ -59,7 +64,7 @@ function App() {
       case 'md':
         return <TxtViewer />
       case 'browser':
-        return <FileBrowser onFileSelect={handleFileSelectFromBrowser} />
+        return <FileBrowser onFileSelect={handleFileSelectFromBrowser} dirUrl={dirUrl} />
       case 'csv':
       default:
         return <CsvViewer />

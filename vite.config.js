@@ -37,6 +37,10 @@ function copyExtensionAssets() {
         resolve(__dirname, 'assets/js/content.js'),
         resolve(distDir, 'assets/js/content.js')
       )
+      copyFileSync(
+        resolve(__dirname, 'assets/js/content-directory.js'),
+        resolve(distDir, 'assets/js/content-directory.js')
+      )
 
       // Copy CSS files
       const cssFiles = readdirSync(resolve(__dirname, 'assets/css'))

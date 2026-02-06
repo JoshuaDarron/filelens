@@ -64,6 +64,40 @@ chrome.webNavigation.onBeforeNavigate.addListener(
   }
 );
 
+// Check if URL is likely a directory (ends with /)
+function isLikelyDirectory(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.pathname.endsWith('/');
+  } catch {
+    return false;
+  }
+}
+
+// Listen for navigation events to intercept directory listings
+chrome.webNavigation.onBeforeNavigate.addListener(
+  (details) => {
+    if (details.frameId !== 0) return;
+
+    const url = details.url;
+
+    if (url.startsWith('file://') && isLikelyDirectory(url)) {
+      const viewerUrl = chrome.runtime.getURL('index.html') +
+        '?url=' + encodeURIComponent(url) +
+        '&type=directory';
+
+      chrome.tabs.update(details.tabId, {
+        url: viewerUrl
+      });
+    }
+  },
+  {
+    url: [
+      { schemes: ['file'], pathSuffix: '/' }
+    ]
+  }
+);
+
 // Handle installation
 chrome.runtime.onInstalled.addListener(() => {
   console.log('FileLens extension installed');

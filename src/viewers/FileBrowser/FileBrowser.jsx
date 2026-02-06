@@ -3,17 +3,100 @@ import { useToast } from '../../hooks/useToast'
 import { Header } from '../../components/Header'
 import { formatFileSize } from '../../utils/fileHelpers'
 
-export function FileBrowser({ onFileSelect }) {
+// Parse Chrome's directory listing HTML to extract file entries
+function parseDirectoryListing(html, baseUrl) {
+  const entries = []
+
+  // Chrome's directory listing uses addRow() calls in a script tag
+  // Format: addRow("name","url","isdir","size","date","time")
+  const addRowRegex = /addRow\("([^"]*?)","([^"]*?)",(\d),(?:"([^"]*?)")?,(?:"([^"]*?)")?,(?:"([^"]*?)")?\)/g
+  let match
+
+  while ((match = addRowRegex.exec(html)) !== null) {
+    const [, name, url, isDir, size, date, time] = match
+
+    // Skip parent directory link
+    if (name === '..') continue
+
+    const kind = isDir === '1' ? 'directory' : 'file'
+
+    // Build full URL for the entry
+    const entryUrl = new URL(url, baseUrl).href
+
+    const entry = {
+      name: decodeURIComponent(name),
+      kind,
+      url: entryUrl
+    }
+
+    if (kind === 'file' && size) {
+      entry.size = parseFileSizeString(size)
+    }
+
+    if (date && time) {
+      try {
+        entry.modified = new Date(`${date} ${time}`).getTime()
+      } catch {
+        // Ignore invalid dates
+      }
+    }
+
+    entries.push(entry)
+  }
+
+  return entries
+}
+
+// Parse size strings like "4.0 kB", "1.2 MB" from Chrome's listing
+function parseFileSizeString(sizeStr) {
+  const match = sizeStr.match(/([\d.]+)\s*(B|kB|MB|GB|TB)?/i)
+  if (!match) return 0
+  const value = parseFloat(match[1])
+  const unit = (match[2] || 'B').toUpperCase()
+  const multipliers = { B: 1, KB: 1024, MB: 1024 ** 2, GB: 1024 ** 3, TB: 1024 ** 4 }
+  return Math.round(value * (multipliers[unit] || 1))
+}
+
+// Build breadcrumb segments from a file:// URL
+function buildBreadcrumbsFromUrl(dirUrl) {
+  try {
+    const parsed = new URL(dirUrl)
+    const pathname = decodeURIComponent(parsed.pathname)
+
+    // On Windows: pathname is like /C:/Users/... — split and filter empties
+    const segments = pathname.split('/').filter(Boolean)
+    const crumbs = []
+
+    for (let i = 0; i < segments.length; i++) {
+      // Reconstruct the URL up to this segment
+      const pathUpTo = '/' + segments.slice(0, i + 1).join('/') + '/'
+      crumbs.push({
+        name: segments[i],
+        url: `file://${pathUpTo}`
+      })
+    }
+
+    return crumbs
+  } catch {
+    return [{ name: dirUrl, url: dirUrl }]
+  }
+}
+
+export function FileBrowser({ onFileSelect, dirUrl }) {
   const toast = useToast()
   const [files, setFiles] = useState([])
   const [currentPath, setCurrentPath] = useState([])
   const [viewMode, setViewMode] = useState('list') // 'list' or 'grid'
   const [isLoading, setIsLoading] = useState(false)
   const [directoryHandle, setDirectoryHandle] = useState(null)
+  const [directoryUrl, setDirectoryUrl] = useState(dirUrl || null)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' })
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, file: null })
   const contextMenuRef = useRef(null)
+
+  // URL-based mode: is active when we have a directoryUrl but no directoryHandle
+  const isUrlMode = !!directoryUrl && !directoryHandle
 
   const getFileIcon = (file) => {
     if (file.kind === 'directory') return 'bi-folder-fill folder'
@@ -39,6 +122,64 @@ export function FileBrowser({ onFileSelect }) {
     }
   }
 
+  // Fetch and parse a directory listing from a file:// URL
+  const fetchDirectoryListing = useCallback(async (url) => {
+    try {
+      setIsLoading(true)
+      setSearchQuery('')
+
+      const response = await fetch(url)
+      const html = await response.text()
+      const entries = parseDirectoryListing(html, url)
+
+      // Sort: directories first, then files alphabetically
+      entries.sort((a, b) => {
+        if (a.kind !== b.kind) {
+          return a.kind === 'directory' ? -1 : 1
+        }
+        return a.name.localeCompare(b.name)
+      })
+
+      setFiles(entries)
+      setDirectoryUrl(url)
+      setCurrentPath(buildBreadcrumbsFromUrl(url))
+    } catch (err) {
+      toast.error(`Error loading directory: ${err.message}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [toast])
+
+  // Navigate to a directory URL (SPA-style with pushState)
+  const navigateToDirectoryUrl = useCallback((url, pushState = true) => {
+    if (pushState) {
+      const newSearchParams = new URLSearchParams(window.location.search)
+      newSearchParams.set('url', url)
+      newSearchParams.set('type', 'directory')
+      history.pushState({ dirUrl: url }, '', '?' + newSearchParams.toString())
+    }
+    fetchDirectoryListing(url)
+  }, [fetchDirectoryListing])
+
+  // Load initial directory if dirUrl is provided
+  useEffect(() => {
+    if (dirUrl) {
+      fetchDirectoryListing(dirUrl)
+    }
+  }, []) // Only run once on mount
+
+  // Handle browser back/forward in URL mode
+  useEffect(() => {
+    const handlePopState = (e) => {
+      if (e.state?.dirUrl) {
+        fetchDirectoryListing(e.state.dirUrl)
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [fetchDirectoryListing])
+
   const openDirectory = useCallback(async () => {
     if (!window.showDirectoryPicker) {
       toast.error('Directory picker is not supported in this browser')
@@ -47,6 +188,9 @@ export function FileBrowser({ onFileSelect }) {
 
     try {
       setIsLoading(true)
+      // Switch out of URL mode when user picks a folder manually
+      setDirectoryUrl(null)
+
       const handle = await window.showDirectoryPicker()
       setDirectoryHandle(handle)
       setCurrentPath([{ name: handle.name, handle }])
@@ -137,6 +281,15 @@ export function FileBrowser({ onFileSelect }) {
   const navigateToBreadcrumb = useCallback(async (index) => {
     if (index === currentPath.length - 1) return
 
+    if (isUrlMode) {
+      // URL mode: navigate to the breadcrumb's URL
+      const target = currentPath[index]
+      if (target.url) {
+        navigateToDirectoryUrl(target.url)
+      }
+      return
+    }
+
     try {
       setIsLoading(true)
       setSearchQuery('')
@@ -179,15 +332,26 @@ export function FileBrowser({ onFileSelect }) {
     } finally {
       setIsLoading(false)
     }
-  }, [currentPath, toast])
+  }, [currentPath, isUrlMode, navigateToDirectoryUrl, toast])
 
   const handleFileClick = useCallback(async (file) => {
     if (file.kind === 'directory') {
-      await navigateToFolder(file.handle, file.name)
+      if (isUrlMode && file.url) {
+        navigateToDirectoryUrl(file.url)
+      } else if (file.handle) {
+        await navigateToFolder(file.handle, file.name)
+      }
       return
     }
 
-    // Open supported file types
+    if (isUrlMode && file.url) {
+      // In URL mode, navigate directly to the file URL
+      // The extension's background.js or content.js will intercept supported types
+      window.location.href = file.url
+      return
+    }
+
+    // File System Access API mode
     const ext = file.name.split('.').pop()?.toLowerCase()
     if (['csv', 'json', 'txt', 'md'].includes(ext)) {
       try {
@@ -199,7 +363,7 @@ export function FileBrowser({ onFileSelect }) {
     } else {
       toast.info(`File type .${ext} is not supported yet`)
     }
-  }, [navigateToFolder, onFileSelect, toast])
+  }, [isUrlMode, navigateToDirectoryUrl, navigateToFolder, onFileSelect, toast])
 
   const formatDate = (timestamp) => {
     if (!timestamp) return '-'
@@ -294,24 +458,41 @@ export function FileBrowser({ onFileSelect }) {
         break
       case 'open-new-tab':
         if (file.kind === 'file') {
-          const ext = file.name.split('.').pop()?.toLowerCase()
-          if (['csv', 'json', 'txt', 'md'].includes(ext)) {
-            try {
-              const fileObj = await file.handle.getFile()
-              const blob = new Blob([await fileObj.text()], { type: fileObj.type || 'text/plain' })
-              const url = URL.createObjectURL(blob)
-              window.open(url, '_blank')
-            } catch (err) {
-              toast.error(`Error opening file: ${err.message}`)
-            }
+          if (isUrlMode && file.url) {
+            window.open(file.url, '_blank')
           } else {
-            toast.info(`File type .${ext} is not supported yet`)
+            const ext = file.name.split('.').pop()?.toLowerCase()
+            if (['csv', 'json', 'txt', 'md'].includes(ext)) {
+              try {
+                const fileObj = await file.handle.getFile()
+                const blob = new Blob([await fileObj.text()], { type: fileObj.type || 'text/plain' })
+                const url = URL.createObjectURL(blob)
+                window.open(url, '_blank')
+              } catch (err) {
+                toast.error(`Error opening file: ${err.message}`)
+              }
+            } else {
+              toast.info(`File type .${ext} is not supported yet`)
+            }
           }
         }
         break
       case 'copy-path':
-        const fullPath = [...currentPath.map(p => p.name), file.name].join('/')
-        navigator.clipboard.writeText(fullPath)
+        if (isUrlMode) {
+          // Decode the file:// URL path for a clean filesystem path
+          try {
+            const parsed = new URL(file.url || directoryUrl + file.name)
+            const decodedPath = decodeURIComponent(parsed.pathname)
+            // On Windows, remove leading slash from /C:/... paths
+            const cleanPath = decodedPath.replace(/^\/([A-Za-z]:)/, '$1')
+            navigator.clipboard.writeText(cleanPath)
+          } catch {
+            navigator.clipboard.writeText(file.url || file.name)
+          }
+        } else {
+          const fullPath = [...currentPath.map(p => p.name), file.name].join('/')
+          navigator.clipboard.writeText(fullPath)
+        }
         toast.success('Path copied to clipboard')
         break
       case 'copy-name':
@@ -350,7 +531,8 @@ export function FileBrowser({ onFileSelect }) {
   // Clear search when navigating
   const clearSearch = () => setSearchQuery('')
 
-  if (!directoryHandle) {
+  // Show empty state only when not in URL mode and no directory handle
+  if (!directoryHandle && !directoryUrl) {
     return (
       <>
         <Header onOpenFile={openDirectory} />
