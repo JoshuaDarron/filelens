@@ -1,15 +1,51 @@
 // Background script for FileLens extension
 
-// Supported file extensions
-const supportedExtensions = ['.csv', '.json', '.txt', '.md'];
+// Native file types with dedicated viewers
+const NATIVE_TYPES = {
+  'csv': 'csv',
+  'json': 'json',
+  'txt': 'txt',
+  'md': 'md'
+};
+
+// Text-like file extensions that should open in TxtViewer
+const TEXT_EXTENSIONS = new Set([
+  // Programming
+  'py', 'js', 'jsx', 'ts', 'tsx', 'java', 'c', 'cpp', 'h', 'hpp', 'cs',
+  'go', 'rs', 'rb', 'php', 'swift', 'kt', 'scala', 'r', 'pl', 'lua',
+  'dart', 'zig', 'ex', 'exs', 'hs', 'ml', 'clj', 'lisp', 'vim', 'v', 'm',
+  // Web / markup
+  'html', 'htm', 'css', 'scss', 'sass', 'less', 'xml', 'xsl', 'svg',
+  'vue', 'svelte', 'astro',
+  // Config
+  'yaml', 'yml', 'toml', 'ini', 'cfg', 'conf', 'properties', 'env',
+  'editorconfig', 'gitignore', 'gitattributes', 'dockerignore',
+  // Shell
+  'sh', 'bash', 'zsh', 'fish', 'bat', 'cmd', 'ps1',
+  // Other text
+  'log', 'sql', 'graphql', 'proto', 'tf', 'hcl', 'gradle', 'cmake',
+  'rst', 'tex', 'org'
+]);
+
+// Extract file extension from a URL (lowercase, without the dot)
+function getExtension(url) {
+  try {
+    const pathname = new URL(url).pathname.toLowerCase();
+    const dotIndex = pathname.lastIndexOf('.');
+    if (dotIndex === -1) return null;
+    // Strip query-like fragments that may follow the extension
+    return pathname.slice(dotIndex + 1).split(/[?#]/)[0] || null;
+  } catch {
+    return null;
+  }
+}
 
 // Get file type from URL
 function getFileType(url) {
-  const lowerUrl = url.toLowerCase();
-  if (lowerUrl.endsWith('.csv') || lowerUrl.includes('.csv?')) return 'csv';
-  if (lowerUrl.endsWith('.json') || lowerUrl.includes('.json?')) return 'json';
-  if (lowerUrl.endsWith('.txt') || lowerUrl.includes('.txt?')) return 'txt';
-  if (lowerUrl.endsWith('.md') || lowerUrl.includes('.md?')) return 'md';
+  const ext = getExtension(url);
+  if (!ext) return null;
+  if (NATIVE_TYPES[ext]) return NATIVE_TYPES[ext];
+  if (TEXT_EXTENSIONS.has(ext)) return 'txt';
   return null;
 }
 
@@ -48,18 +84,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(
   },
   {
     url: [
-      // CSV files
-      { schemes: ['file'], pathSuffix: '.csv' },
-      { schemes: ['file'], pathSuffix: '.CSV' },
-      // JSON files
-      { schemes: ['file'], pathSuffix: '.json' },
-      { schemes: ['file'], pathSuffix: '.JSON' },
-      // TXT files
-      { schemes: ['file'], pathSuffix: '.txt' },
-      { schemes: ['file'], pathSuffix: '.TXT' },
-      // Markdown files
-      { schemes: ['file'], pathSuffix: '.md' },
-      { schemes: ['file'], pathSuffix: '.MD' }
+      { schemes: ['file'] }
     ]
   }
 );

@@ -6,20 +6,46 @@
   const currentUrl = window.location.href;
   const pathname = window.location.pathname.toLowerCase();
 
-  // Supported file extensions and their types
-  const supportedTypes = {
-    '.csv': 'csv',
-    '.json': 'json',
-    '.txt': 'txt',
-    '.md': 'md'
+  // Native file types with dedicated viewers
+  const NATIVE_TYPES = {
+    'csv': 'csv',
+    'json': 'json',
+    'txt': 'txt',
+    'md': 'md'
+  };
+
+  // Text-like file extensions that should open in TxtViewer
+  const TEXT_EXTENSIONS = new Set([
+    // Programming
+    'py', 'js', 'jsx', 'ts', 'tsx', 'java', 'c', 'cpp', 'h', 'hpp', 'cs',
+    'go', 'rs', 'rb', 'php', 'swift', 'kt', 'scala', 'r', 'pl', 'lua',
+    'dart', 'zig', 'ex', 'exs', 'hs', 'ml', 'clj', 'lisp', 'vim', 'v', 'm',
+    // Web / markup
+    'html', 'htm', 'css', 'scss', 'sass', 'less', 'xml', 'xsl', 'svg',
+    'vue', 'svelte', 'astro',
+    // Config
+    'yaml', 'yml', 'toml', 'ini', 'cfg', 'conf', 'properties', 'env',
+    'editorconfig', 'gitignore', 'gitattributes', 'dockerignore',
+    // Shell
+    'sh', 'bash', 'zsh', 'fish', 'bat', 'cmd', 'ps1',
+    // Other text
+    'log', 'sql', 'graphql', 'proto', 'tf', 'hcl', 'gradle', 'cmake',
+    'rst', 'tex', 'org'
+  ]);
+
+  // Extract file extension from pathname (lowercase, without the dot)
+  const getExtension = (path) => {
+    const dotIndex = path.lastIndexOf('.');
+    if (dotIndex === -1) return null;
+    return path.slice(dotIndex + 1).split(/[?#]/)[0] || null;
   };
 
   // Check if we should intercept this file
   const getFileType = () => {
-    for (const [ext, type] of Object.entries(supportedTypes)) {
-      if (pathname.endsWith(ext) || pathname.includes(ext + '?')) {
-        return type;
-      }
+    const ext = getExtension(pathname);
+    if (ext) {
+      if (NATIVE_TYPES[ext]) return NATIVE_TYPES[ext];
+      if (TEXT_EXTENSIONS.has(ext)) return 'txt';
     }
 
     // Check content type for web URLs
@@ -32,11 +58,8 @@
     }
     if (contentType === 'text/plain') {
       // For plain text, try to detect from extension in URL
-      for (const [ext, type] of Object.entries(supportedTypes)) {
-        if (pathname.includes(ext)) {
-          return type;
-        }
-      }
+      if (ext && NATIVE_TYPES[ext]) return NATIVE_TYPES[ext];
+      if (ext && TEXT_EXTENSIONS.has(ext)) return 'txt';
       // Default to txt for text/plain
       return 'txt';
     }

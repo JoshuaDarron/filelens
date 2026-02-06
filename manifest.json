@@ -27,14 +27,7 @@
         "*://*/*.txt?*",
         "*://*/*.md",
         "*://*/*.md?*",
-        "file:///*.csv",
-        "file:///*.CSV",
-        "file:///*.json",
-        "file:///*.JSON",
-        "file:///*.txt",
-        "file:///*.TXT",
-        "file:///*.md",
-        "file:///*.MD"
+        "file:///*"
       ],
       "js": ["assets/js/content.js"],
       "all_frames": true,
