@@ -1,4 +1,4 @@
-import { useContext, useRef } from 'react'
+import { useContext, useMemo, useRef } from 'react'
 import { FileContext } from '../context/FileContext'
 import { ThemeToggle } from './ThemeToggle'
 
@@ -14,6 +14,23 @@ export function Header({
   const { filename, isModified, fileHandle } = useContext(FileContext)
   const fileInputRef = useRef(null)
 
+  const parentDirUrl = useMemo(() => {
+    const params = new URLSearchParams(window.location.search)
+    const fileUrl = params.get('url')
+    const type = params.get('type')
+    if (!fileUrl || type === 'directory') return null
+    try {
+      const parsed = new URL(fileUrl)
+      if (parsed.protocol !== 'file:') return null
+      const parentPath = parsed.pathname.replace(/\/[^/]+$/, '/')
+      const dirUrl = `file://${parentPath}`
+      const viewerUrl = `${window.location.pathname}?url=${encodeURIComponent(dirUrl)}&type=directory`
+      return viewerUrl
+    } catch {
+      return null
+    }
+  }, [])
+
   const handleOpenClick = () => {
     if (onOpenFile) {
       onOpenFile()
@@ -25,6 +42,11 @@ export function Header({
   return (
     <header className="header">
       <div className="header-left">
+        {parentDirUrl && (
+          <a href={parentDirUrl} className="btn btn-outline back-btn" title="Back to folder">
+            <i className="bi bi-arrow-left"></i>
+          </a>
+        )}
         <div className="logo">FileLens</div>
         <input
           type="file"

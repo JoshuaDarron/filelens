@@ -133,6 +133,11 @@ body {
   color: var(--button-primary);
 }
 
+.back-btn {
+  padding: 6px 10px;
+  font-size: 18px;
+}
+
 .file-input {
   display: none;
 }
