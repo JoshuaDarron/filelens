@@ -24,8 +24,8 @@ function App() {
       const detectedType = detectFileType(url)
       setActiveViewer(detectedType)
     } else {
-      // No URL, default to CSV viewer (for empty state / drag-drop)
-      setActiveViewer('csv')
+      // No URL, default to FileBrowser
+      setActiveViewer('browser')
     }
   }, [detectFileType])
 

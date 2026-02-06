@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useToast } from '../../hooks/useToast'
 import { Header } from '../../components/Header'
 import { formatFileSize } from '../../utils/fileHelpers'
@@ -10,6 +10,10 @@ export function FileBrowser({ onFileSelect }) {
   const [viewMode, setViewMode] = useState('list') // 'list' or 'grid'
   const [isLoading, setIsLoading] = useState(false)
   const [directoryHandle, setDirectoryHandle] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' })
+  const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, file: null })
+  const contextMenuRef = useRef(null)
 
   const getFileIcon = (file) => {
     if (file.kind === 'directory') return 'bi-folder-fill folder'
@@ -90,6 +94,7 @@ export function FileBrowser({ onFileSelect }) {
   const navigateToFolder = useCallback(async (folderHandle, folderName) => {
     try {
       setIsLoading(true)
+      setSearchQuery('')
       setCurrentPath(prev => [...prev, { name: folderName, handle: folderHandle }])
 
       const entries = []
@@ -134,6 +139,7 @@ export function FileBrowser({ onFileSelect }) {
 
     try {
       setIsLoading(true)
+      setSearchQuery('')
       const targetPath = currentPath.slice(0, index + 1)
       const targetHandle = targetPath[targetPath.length - 1].handle
 
@@ -206,6 +212,144 @@ export function FileBrowser({ onFileSelect }) {
     })
   }
 
+  // Filter files by search query
+  const filteredFiles = useMemo(() => {
+    if (!searchQuery.trim()) return files
+    const query = searchQuery.toLowerCase()
+    return files.filter(file => file.name.toLowerCase().includes(query))
+  }, [files, searchQuery])
+
+  // Sort files (directories always first)
+  const sortedFiles = useMemo(() => {
+    const sorted = [...filteredFiles]
+    sorted.sort((a, b) => {
+      // Directories always come first
+      if (a.kind !== b.kind) {
+        return a.kind === 'directory' ? -1 : 1
+      }
+
+      let comparison = 0
+      switch (sortConfig.key) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name)
+          break
+        case 'size':
+          comparison = (a.size || 0) - (b.size || 0)
+          break
+        case 'modified':
+          comparison = (a.modified || 0) - (b.modified || 0)
+          break
+        case 'type':
+          const typeA = a.kind === 'directory' ? 'Folder' : a.name.split('.').pop()?.toLowerCase() || ''
+          const typeB = b.kind === 'directory' ? 'Folder' : b.name.split('.').pop()?.toLowerCase() || ''
+          comparison = typeA.localeCompare(typeB)
+          break
+        default:
+          comparison = 0
+      }
+
+      return sortConfig.direction === 'asc' ? comparison : -comparison
+    })
+    return sorted
+  }, [filteredFiles, sortConfig])
+
+  // Handle column header click for sorting
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }))
+  }
+
+  // Get sort icon for column header
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) return 'bi-chevron-expand'
+    return sortConfig.direction === 'asc' ? 'bi-chevron-up' : 'bi-chevron-down'
+  }
+
+  // Handle right-click context menu
+  const handleContextMenu = (e, file) => {
+    e.preventDefault()
+    setContextMenu({
+      visible: true,
+      x: e.clientX,
+      y: e.clientY,
+      file
+    })
+  }
+
+  // Close context menu
+  const closeContextMenu = useCallback(() => {
+    setContextMenu(prev => ({ ...prev, visible: false }))
+  }, [])
+
+  // Context menu actions
+  const handleContextMenuAction = async (action) => {
+    const file = contextMenu.file
+    if (!file) return
+
+    switch (action) {
+      case 'open':
+        handleFileClick(file)
+        break
+      case 'open-new-tab':
+        if (file.kind === 'file') {
+          const ext = file.name.split('.').pop()?.toLowerCase()
+          if (['csv', 'json', 'txt', 'md'].includes(ext)) {
+            try {
+              const fileObj = await file.handle.getFile()
+              const blob = new Blob([await fileObj.text()], { type: fileObj.type || 'text/plain' })
+              const url = URL.createObjectURL(blob)
+              window.open(url, '_blank')
+            } catch (err) {
+              toast.error(`Error opening file: ${err.message}`)
+            }
+          } else {
+            toast.info(`File type .${ext} is not supported yet`)
+          }
+        }
+        break
+      case 'copy-path':
+        const fullPath = [...currentPath.map(p => p.name), file.name].join('/')
+        navigator.clipboard.writeText(fullPath)
+        toast.success('Path copied to clipboard')
+        break
+      case 'copy-name':
+        navigator.clipboard.writeText(file.name)
+        toast.success('Name copied to clipboard')
+        break
+    }
+    closeContextMenu()
+  }
+
+  // Close context menu on click outside or Escape
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(e.target)) {
+        closeContextMenu()
+      }
+    }
+
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        closeContextMenu()
+      }
+    }
+
+    if (contextMenu.visible) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleEscape)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [contextMenu.visible, closeContextMenu])
+
+  // Clear search when navigating
+  const clearSearch = () => setSearchQuery('')
+
   if (!directoryHandle) {
     return (
       <>
@@ -263,6 +407,31 @@ export function FileBrowser({ onFileSelect }) {
             ))}
           </div>
 
+          <div className="browser-controls">
+            <div className="browser-search">
+              <div className="browser-search-wrapper">
+                <i className="bi bi-search browser-search-icon"></i>
+                <input
+                  type="text"
+                  className="browser-search-input"
+                  placeholder="Search files..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    className="btn"
+                    style={{ position: 'absolute', right: '4px', top: '50%', transform: 'translateY(-50%)', padding: '4px 8px', minWidth: 'auto' }}
+                    onClick={clearSearch}
+                    title="Clear search"
+                  >
+                    <i className="bi bi-x"></i>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
           {isLoading ? (
             <div className="browser-loading">
               <div className="browser-loading-spinner"></div>
@@ -278,36 +447,91 @@ export function FileBrowser({ onFileSelect }) {
             <>
               {viewMode === 'list' && (
                 <div className="file-list-header">
-                  <span>Name</span>
-                  <span>Size</span>
-                  <span>Modified</span>
-                  <span>Type</span>
+                  <span onClick={() => handleSort('name')}>
+                    Name
+                    <i className={`bi ${getSortIcon('name')} sort-icon ${sortConfig.key === 'name' ? 'active' : ''}`}></i>
+                  </span>
+                  <span onClick={() => handleSort('size')}>
+                    Size
+                    <i className={`bi ${getSortIcon('size')} sort-icon ${sortConfig.key === 'size' ? 'active' : ''}`}></i>
+                  </span>
+                  <span onClick={() => handleSort('modified')}>
+                    Modified
+                    <i className={`bi ${getSortIcon('modified')} sort-icon ${sortConfig.key === 'modified' ? 'active' : ''}`}></i>
+                  </span>
+                  <span onClick={() => handleSort('type')}>
+                    Type
+                    <i className={`bi ${getSortIcon('type')} sort-icon ${sortConfig.key === 'type' ? 'active' : ''}`}></i>
+                  </span>
                 </div>
               )}
-              <div className={`file-list ${viewMode === 'grid' ? 'grid-view' : ''}`}>
-                {files.map((file, index) => (
-                  <div
-                    key={index}
-                    className="file-item"
-                    onClick={() => handleFileClick(file)}
-                  >
-                    <div className="file-item-name">
-                      <i className={`bi file-icon ${getFileIcon(file)}`}></i>
-                      <span title={file.name}>{file.name}</span>
-                    </div>
-                    <div className="file-item-size">
-                      {file.kind === 'file' ? formatFileSize(file.size || 0) : '-'}
-                    </div>
-                    <div className="file-item-modified">
-                      {formatDate(file.modified)}
-                    </div>
-                    <div className="file-item-type">
-                      {file.kind === 'directory' ? 'Folder' : file.name.split('.').pop()?.toUpperCase() || 'File'}
-                    </div>
+              {sortedFiles.length === 0 && searchQuery ? (
+                <div className="browser-empty">
+                  <div className="browser-empty-icon"><i className="bi bi-search"></i></div>
+                  <div className="browser-empty-title">No Results</div>
+                  <div className="browser-empty-description">
+                    No files match "{searchQuery}". Try a different search term.
                   </div>
-                ))}
-              </div>
+                  <button className="btn btn-primary" onClick={clearSearch}>
+                    Clear Search
+                  </button>
+                </div>
+              ) : (
+                <div className={`file-list ${viewMode === 'grid' ? 'grid-view' : ''}`}>
+                  {sortedFiles.map((file, index) => (
+                    <div
+                      key={index}
+                      className="file-item"
+                      onClick={() => handleFileClick(file)}
+                      onContextMenu={(e) => handleContextMenu(e, file)}
+                    >
+                      <div className="file-item-name">
+                        <i className={`bi file-icon ${getFileIcon(file)}`}></i>
+                        <span title={file.name}>{file.name}</span>
+                      </div>
+                      <div className="file-item-size">
+                        {file.kind === 'file' ? formatFileSize(file.size || 0) : '-'}
+                      </div>
+                      <div className="file-item-modified">
+                        {formatDate(file.modified)}
+                      </div>
+                      <div className="file-item-type">
+                        {file.kind === 'directory' ? 'Folder' : file.name.split('.').pop()?.toUpperCase() || 'File'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </>
+          )}
+
+          {/* Context Menu */}
+          {contextMenu.visible && (
+            <div
+              ref={contextMenuRef}
+              className="context-menu"
+              style={{ left: contextMenu.x, top: contextMenu.y }}
+            >
+              <div className="context-menu-item" onClick={() => handleContextMenuAction('open')}>
+                <i className="bi bi-folder2-open context-menu-item-icon"></i>
+                Open
+              </div>
+              {contextMenu.file?.kind === 'file' && (
+                <div className="context-menu-item" onClick={() => handleContextMenuAction('open-new-tab')}>
+                  <i className="bi bi-box-arrow-up-right context-menu-item-icon"></i>
+                  Open in New Tab
+                </div>
+              )}
+              <div className="context-menu-separator"></div>
+              <div className="context-menu-item" onClick={() => handleContextMenuAction('copy-path')}>
+                <i className="bi bi-clipboard context-menu-item-icon"></i>
+                Copy Path
+              </div>
+              <div className="context-menu-item" onClick={() => handleContextMenuAction('copy-name')}>
+                <i className="bi bi-type context-menu-item-icon"></i>
+                Copy Name
+              </div>
+            </div>
           )}
         </div>
       </main>
