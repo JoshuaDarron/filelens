@@ -2,6 +2,19 @@ import { useCallback, useContext } from 'react'
 import { FileContext } from '../context/FileContext'
 import { useToast } from './useToast'
 
+// All text-like extensions that open in TxtViewer (mirrors background.js / content.js)
+export const TEXT_FILE_EXTENSIONS = [
+  '.py', '.js', '.jsx', '.ts', '.tsx', '.java', '.c', '.cpp', '.h', '.hpp', '.cs',
+  '.go', '.rs', '.rb', '.php', '.swift', '.kt', '.scala', '.r', '.pl', '.lua',
+  '.dart', '.zig', '.ex', '.exs', '.hs', '.ml', '.clj', '.lisp', '.vim', '.v', '.m',
+  '.css', '.scss', '.sass', '.less', '.vue', '.svelte', '.astro',
+  '.yaml', '.yml', '.toml', '.ini', '.cfg', '.conf', '.properties', '.env',
+  '.editorconfig', '.gitignore', '.gitattributes', '.dockerignore',
+  '.sh', '.bash', '.zsh', '.fish', '.bat', '.cmd', '.ps1',
+  '.log', '.sql', '.graphql', '.proto', '.tf', '.hcl', '.gradle', '.cmake',
+  '.rst', '.tex', '.org'
+]
+
 export function useFileLoader() {
   const fileContext = useContext(FileContext)
   const toast = useToast()
@@ -108,7 +121,7 @@ export function useFileLoader() {
             description: 'Supported Files',
             accept: {
               'text/csv': ['.csv'],
-              'text/plain': ['.txt', '.md'],
+              'text/plain': ['.txt', '.md', ...TEXT_FILE_EXTENSIONS],
               'application/json': ['.json'],
               ...acceptTypes
             }
@@ -127,7 +140,7 @@ export function useFileLoader() {
     return null
   }, [toast])
 
-  const isValidFile = useCallback((file, validExtensions = ['.csv', '.txt', '.json', '.md']) => {
+  const isValidFile = useCallback((file, validExtensions = ['.csv', '.txt', '.json', '.md', ...TEXT_FILE_EXTENSIONS]) => {
     const hasValidExtension = validExtensions.some(ext =>
       file.name.toLowerCase().endsWith(ext)
     )

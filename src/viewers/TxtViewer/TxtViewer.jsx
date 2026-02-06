@@ -90,9 +90,7 @@ export function TxtViewer() {
 
     if (window.showOpenFilePicker) {
       try {
-        const result = await openFilePicker({
-          'text/plain': ['.txt', '.md']
-        })
+        const result = await openFilePicker()
         if (result) {
           const { text, filename: fname, fileType: type } = await loadFromFile(result.file, result.handle)
           processText(text, fname, type, result.handle, null)
@@ -106,8 +104,8 @@ export function TxtViewer() {
   }, [loadFromFile, openFilePicker, processText])
 
   const handleFileDrop = useCallback(async (file, handle) => {
-    if (!isValidFile(file, ['.txt', '.md'])) {
-      toast.error('Please drop a valid text file (.txt, .md)')
+    if (!isValidFile(file)) {
+      toast.error('Unsupported file type')
       return
     }
     try {

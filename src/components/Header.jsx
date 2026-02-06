@@ -52,7 +52,7 @@ export function Header({
           type="file"
           ref={fileInputRef}
           className="file-input"
-          accept=".csv,.txt,.json,.md"
+          accept="*/*"
           onChange={(e) => {
             const file = e.target.files?.[0]
             if (file && onOpenFile) {
