@@ -203,7 +203,7 @@
 .file-list.grid-view {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 16px;
+  gap: 4px;
   padding: 16px;
 }
 
