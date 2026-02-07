@@ -289,13 +289,14 @@
 }
 
 .browser-search-input {
-  flex: 1;
+  width: 100%;
   padding: 8px 32px 8px 36px;
   border: 1px solid var(--border-color);
   background: var(--bg-primary);
   color: var(--text-primary);
   border-radius: 6px;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
 .browser-search-input:focus {
