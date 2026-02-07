@@ -34,6 +34,8 @@ export function Header({
   const handleOpenClick = () => {
     if (onOpenFile) {
       onOpenFile()
+    } else if (fileInputRef.current) {
+      fileInputRef.current.click()
     }
   }
 
@@ -56,7 +58,7 @@ export function Header({
           }}
         />
         <button className="btn btn-primary" onClick={handleOpenClick}>
-          <i className="bi bi-folder2-open"></i> Open File
+          <i className="bi bi-folder2-open"></i> Open
         </button>
         {parentDirUrl && (
           <a href={parentDirUrl} className="btn btn-outline back-btn" title="Back to folder">
