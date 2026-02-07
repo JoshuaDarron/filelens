@@ -42,11 +42,6 @@ export function Header({
   return (
     <header className="header">
       <div className="header-left">
-        {parentDirUrl && (
-          <a href={parentDirUrl} className="btn btn-outline back-btn" title="Back to folder">
-            <i className="bi bi-arrow-left"></i>
-          </a>
-        )}
         <div className="logo">FileLens</div>
         <input
           type="file"
@@ -63,6 +58,11 @@ export function Header({
         <button className="btn btn-primary" onClick={handleOpenClick}>
           <i className="bi bi-folder2-open"></i> Open File
         </button>
+        {parentDirUrl && (
+          <a href={parentDirUrl} className="btn btn-outline back-btn" title="Back to folder">
+            <i className="bi bi-arrow-left"></i>
+          </a>
+        )}
         {filename && (
           <div className="file-info">
             <span><i className="bi bi-file-earmark-text"></i> {filename}</span>
