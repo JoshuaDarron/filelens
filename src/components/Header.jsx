@@ -63,11 +63,6 @@ export function Header({
             <i className="bi bi-arrow-left"></i>
           </a>
         )}
-        {filename && (
-          <div className="file-info">
-            <span><i className="bi bi-file-earmark-text"></i> {filename}</span>
-          </div>
-        )}
       </div>
       <div className="header-right">
         {stats && (
