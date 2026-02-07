@@ -14,20 +14,23 @@ export function Header({
   const { filename, isModified, fileHandle } = useContext(FileContext)
   const fileInputRef = useRef(null)
 
-  const parentDirUrl = useMemo(() => {
+  const { parentDirUrl, filePath } = useMemo(() => {
     const params = new URLSearchParams(window.location.search)
     const fileUrl = params.get('url')
     const type = params.get('type')
-    if (!fileUrl || type === 'directory') return null
+    if (!fileUrl || type === 'directory') return { parentDirUrl: null, filePath: null }
     try {
       const parsed = new URL(fileUrl)
-      if (parsed.protocol !== 'file:') return null
+      if (parsed.protocol !== 'file:') return { parentDirUrl: null, filePath: null }
+      const decodedPath = decodeURIComponent(parsed.pathname)
+        .replace(/^\//, '')
+        .replace(/\//g, '\\')
       const parentPath = parsed.pathname.replace(/\/[^/]+$/, '/')
       const dirUrl = `file://${parentPath}`
       const viewerUrl = `${window.location.pathname}?url=${encodeURIComponent(dirUrl)}&type=directory`
-      return viewerUrl
+      return { parentDirUrl: viewerUrl, filePath: decodedPath }
     } catch {
-      return null
+      return { parentDirUrl: null, filePath: null }
     }
   }, [])
 
@@ -41,6 +44,7 @@ export function Header({
   const canSave = showSave && fileHandle
 
   return (
+    <>
     <header className="header">
       <div className="header-left">
         <div className="logo">FileLens</div>
@@ -119,5 +123,12 @@ export function Header({
         <ThemeToggle />
       </div>
     </header>
+    {filePath && (
+      <div className="file-path-bar">
+        <i className="bi bi-file-earmark-text"></i>
+        <span className="file-path-text">{filePath}</span>
+      </div>
+    )}
+    </>
   )
 }
