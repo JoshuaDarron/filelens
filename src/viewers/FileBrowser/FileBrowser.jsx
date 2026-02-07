@@ -568,12 +568,11 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
                 />
                 {searchQuery && (
                   <button
-                    className="btn"
-                    style={{ position: 'absolute', right: '4px', top: '50%', transform: 'translateY(-50%)', padding: '4px 8px', minWidth: 'auto' }}
+                    className="browser-search-clear"
                     onClick={clearSearch}
                     title="Clear search"
                   >
-                    <i className="bi bi-x"></i>
+                    <i className="bi bi-x-lg"></i>
                   </button>
                 )}
               </div>

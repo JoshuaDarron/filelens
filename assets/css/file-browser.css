@@ -290,8 +290,7 @@
 
 .browser-search-input {
   flex: 1;
-  padding: 8px 12px;
-  padding-left: 36px;
+  padding: 8px 32px 8px 36px;
   border: 1px solid var(--border-color);
   background: var(--bg-primary);
   color: var(--text-primary);
@@ -316,6 +315,25 @@
   transform: translateY(-50%);
   color: var(--text-muted);
   pointer-events: none;
+}
+
+.browser-search-clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+}
+
+.browser-search-clear:hover {
+  color: var(--text-primary);
 }
 
 /* ========================================
