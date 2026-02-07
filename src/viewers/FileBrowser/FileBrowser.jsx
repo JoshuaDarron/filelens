@@ -87,7 +87,7 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
   const toast = useToast()
   const [files, setFiles] = useState([])
   const [currentPath, setCurrentPath] = useState([])
-  const [viewMode, setViewMode] = useState('list') // 'list' or 'grid'
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem('fileBrowser-viewMode') || 'list') // 'list' or 'grid'
   const [isLoading, setIsLoading] = useState(false)
   const [directoryHandle, setDirectoryHandle] = useState(null)
   const [directoryUrl, setDirectoryUrl] = useState(dirUrl || null)
@@ -559,14 +559,14 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
         <div className="view-mode-toggle">
           <button
             className={`view-mode-btn ${viewMode === 'list' ? 'active' : ''}`}
-            onClick={() => setViewMode('list')}
+            onClick={() => { setViewMode('list'); localStorage.setItem('fileBrowser-viewMode', 'list') }}
             title="List view"
           >
             <i className="bi bi-list"></i>
           </button>
           <button
             className={`view-mode-btn ${viewMode === 'grid' ? 'active' : ''}`}
-            onClick={() => setViewMode('grid')}
+            onClick={() => { setViewMode('grid'); localStorage.setItem('fileBrowser-viewMode', 'grid') }}
             title="Grid view"
           >
             <i className="bi bi-grid"></i>
