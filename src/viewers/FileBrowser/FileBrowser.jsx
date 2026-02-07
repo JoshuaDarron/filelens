@@ -91,7 +91,7 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('fileBrowser-viewMode') || 'list') // 'list' or 'grid'
   const [isLoading, setIsLoading] = useState(false)
   const [directoryHandle, setDirectoryHandle] = useState(null)
-  const [directoryUrl, setDirectoryUrl] = useState(dirUrl || null)
+  const [directoryUrl, setDirectoryUrl] = useState(dirUrl || 'file:///C:/')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' })
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, file: null })
@@ -163,11 +163,9 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
     fetchDirectoryListing(url)
   }, [fetchDirectoryListing])
 
-  // Load initial directory if dirUrl is provided
+  // Load initial directory on mount
   useEffect(() => {
-    if (dirUrl) {
-      fetchDirectoryListing(dirUrl)
-    }
+    fetchDirectoryListing(directoryUrl)
   }, []) // Only run once on mount
 
   // Handle browser back/forward in URL mode
@@ -533,30 +531,9 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
   // Clear search when navigating
   const clearSearch = () => setSearchQuery('')
 
-  // Show empty state only when not in URL mode and no directory handle
-  if (!directoryHandle && !directoryUrl) {
-    return (
-      <>
-        <Header onOpenFile={openDirectory} />
-        <main className="main-content">
-          <div className="empty-state">
-            <div className="empty-icon"><i className="bi bi-folder2-open"></i></div>
-            <div className="empty-title">File Browser</div>
-            <div className="empty-description">
-              Browse and open files from your local filesystem. Select a folder to get started.
-            </div>
-            <button className="btn btn-primary" onClick={openDirectory}>
-              <i className="bi bi-folder2-open"></i> Open Folder
-            </button>
-          </div>
-        </main>
-      </>
-    )
-  }
-
   return (
     <>
-      <Header onOpenFile={openDirectory}>
+      <Header>
         <div className="view-mode-toggle">
           <button
             className={`view-mode-btn ${viewMode === 'list' ? 'active' : ''}`}

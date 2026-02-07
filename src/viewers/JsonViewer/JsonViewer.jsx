@@ -234,7 +234,7 @@ export function JsonViewer() {
   if (!fileData) {
     return (
       <>
-        <Header onOpenFile={handleOpenFile} />
+        <Header />
         <main className="main-content">
           <EmptyState
             icon="bi-filetype-json"
@@ -254,7 +254,6 @@ export function JsonViewer() {
   return (
     <>
       <Header
-        onOpenFile={handleOpenFile}
         onExport={handleExport}
         showExport={true}
         stats={getStats()}

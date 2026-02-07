@@ -234,7 +234,7 @@ export function TxtViewer() {
   if (!fileData) {
     return (
       <>
-        <Header onOpenFile={handleOpenFile} />
+        <Header />
         <main className="main-content">
           <EmptyState
             icon="bi-file-text"
@@ -254,7 +254,6 @@ export function TxtViewer() {
   return (
     <>
       <Header
-        onOpenFile={handleOpenFile}
         onSave={handleSave}
         onExport={handleExport}
         showSave={!!fileHandle}

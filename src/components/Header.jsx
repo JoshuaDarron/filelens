@@ -1,10 +1,9 @@
-import { useContext, useMemo, useRef } from 'react'
+import { useContext, useMemo } from 'react'
 import { FileContext } from '../context/FileContext'
 import { ThemeToggle } from './ThemeToggle'
 import { Breadcrumb } from './Breadcrumb'
 
 export function Header({
-  onOpenFile,
   onSave,
   onExport,
   showSave = false,
@@ -13,7 +12,6 @@ export function Header({
   children
 }) {
   const { filename, isModified, fileHandle } = useContext(FileContext)
-  const fileInputRef = useRef(null)
 
   const { parentDirUrl, breadcrumbs } = useMemo(() => {
     const params = new URLSearchParams(window.location.search)
@@ -53,35 +51,13 @@ export function Header({
     }
   }, [])
 
-  const handleOpenClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-      fileInputRef.current.click()
-    }
-  }
-
   const canSave = showSave && fileHandle
 
   return (
     <>
     <header className="header">
       <div className="header-left">
-        <div className="logo">FileLens</div>
-        <input
-          type="file"
-          ref={fileInputRef}
-          className="file-input"
-          accept="*/*"
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            if (file && onOpenFile) {
-              onOpenFile(file)
-            }
-          }}
-        />
-        <button className="btn btn-primary" onClick={handleOpenClick}>
-          <i className="bi bi-folder2-open"></i> Open
-        </button>
+        <a href={`${window.location.pathname}?type=directory`} className="logo" style={{ textDecoration: 'none', color: 'inherit' }}>FileLens</a>
         {parentDirUrl && (
           <a href={parentDirUrl} className="btn btn-outline back-btn" title="Back to folder">
             <i className="bi bi-arrow-left"></i>

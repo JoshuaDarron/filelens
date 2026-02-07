@@ -251,7 +251,7 @@ export function CsvViewer() {
   if (!fileData) {
     return (
       <>
-        <Header onOpenFile={handleOpenFile} />
+        <Header />
         <main className="main-content">
           <EmptyState
             icon="bi-file-earmark-spreadsheet"
@@ -271,7 +271,6 @@ export function CsvViewer() {
   return (
     <>
       <Header
-        onOpenFile={handleOpenFile}
         onSave={handleSave}
         onExport={handleExport}
         showSave={!!fileHandle}
