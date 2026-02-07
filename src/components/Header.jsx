@@ -14,23 +14,41 @@ export function Header({
   const { filename, isModified, fileHandle } = useContext(FileContext)
   const fileInputRef = useRef(null)
 
-  const { parentDirUrl, filePath } = useMemo(() => {
+  const { parentDirUrl, breadcrumbs } = useMemo(() => {
     const params = new URLSearchParams(window.location.search)
     const fileUrl = params.get('url')
     const type = params.get('type')
-    if (!fileUrl || type === 'directory') return { parentDirUrl: null, filePath: null }
+    if (!fileUrl || type === 'directory') return { parentDirUrl: null, breadcrumbs: null }
     try {
       const parsed = new URL(fileUrl)
-      if (parsed.protocol !== 'file:') return { parentDirUrl: null, filePath: null }
-      const decodedPath = decodeURIComponent(parsed.pathname)
-        .replace(/^\//, '')
-        .replace(/\//g, '\\')
+      if (parsed.protocol !== 'file:') return { parentDirUrl: null, breadcrumbs: null }
+
+      const pathname = decodeURIComponent(parsed.pathname)
+      const segments = pathname.split('/').filter(Boolean)
+      const crumbs = []
+
+      // Directory segments (all but the last, which is the filename)
+      for (let i = 0; i < segments.length - 1; i++) {
+        const pathUpTo = '/' + segments.slice(0, i + 1).join('/') + '/'
+        const dirUrl = `file://${pathUpTo}`
+        crumbs.push({
+          name: segments[i],
+          url: `${window.location.pathname}?url=${encodeURIComponent(dirUrl)}&type=directory`
+        })
+      }
+
+      // Filename as last segment (no url — not clickable)
+      if (segments.length > 0) {
+        crumbs.push({ name: segments[segments.length - 1], url: null })
+      }
+
       const parentPath = parsed.pathname.replace(/\/[^/]+$/, '/')
-      const dirUrl = `file://${parentPath}`
-      const viewerUrl = `${window.location.pathname}?url=${encodeURIComponent(dirUrl)}&type=directory`
-      return { parentDirUrl: viewerUrl, filePath: decodedPath }
+      const parentUrl = `file://${parentPath}`
+      const parentViewerUrl = `${window.location.pathname}?url=${encodeURIComponent(parentUrl)}&type=directory`
+
+      return { parentDirUrl: parentViewerUrl, breadcrumbs: crumbs }
     } catch {
-      return { parentDirUrl: null, filePath: null }
+      return { parentDirUrl: null, breadcrumbs: null }
     }
   }, [])
 
@@ -123,10 +141,26 @@ export function Header({
         <ThemeToggle />
       </div>
     </header>
-    {filePath && (
-      <div className="file-path-bar">
-        <i className="bi bi-file-earmark-text"></i>
-        <span className="file-path-text">{filePath}</span>
+    {breadcrumbs && (
+      <div className="breadcrumb">
+        {breadcrumbs.map((item, index) => (
+          <span key={index} style={{ display: 'contents' }}>
+            {index > 0 && <span className="breadcrumb-separator">/</span>}
+            {item.url ? (
+              <a
+                className="breadcrumb-item"
+                href={item.url}
+              >
+                {index === 0 && <i className="bi bi-folder2"></i>}
+                {item.name}
+              </a>
+            ) : (
+              <span className="breadcrumb-item current">
+                {item.name}
+              </span>
+            )}
+          </span>
+        ))}
       </div>
     )}
     </>
