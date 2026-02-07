@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useToast } from '../../hooks/useToast'
 import { Header } from '../../components/Header'
+import { Breadcrumb } from '../../components/Breadcrumb'
 import { formatFileSize } from '../../utils/fileHelpers'
 
 // Parse Chrome's directory listing HTML to extract file entries
@@ -575,20 +576,7 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
       </Header>
       <main className="main-content">
         <div className="browser-container">
-          <div className="breadcrumb">
-            {currentPath.map((item, index) => (
-              <span key={index} style={{ display: 'contents' }}>
-                {index > 0 && <span className="breadcrumb-separator">/</span>}
-                <span
-                  className={`breadcrumb-item ${index === currentPath.length - 1 ? 'current' : ''}`}
-                  onClick={() => navigateToBreadcrumb(index)}
-                >
-                  {index === 0 && <i className="bi bi-folder2"></i>}
-                  {item.name}
-                </span>
-              </span>
-            ))}
-          </div>
+          <Breadcrumb items={currentPath} onNavigate={navigateToBreadcrumb} />
 
           <div className="browser-controls">
             <div className="browser-search">

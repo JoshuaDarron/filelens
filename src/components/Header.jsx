@@ -1,6 +1,7 @@
 import { useContext, useMemo, useRef } from 'react'
 import { FileContext } from '../context/FileContext'
 import { ThemeToggle } from './ThemeToggle'
+import { Breadcrumb } from './Breadcrumb'
 
 export function Header({
   onOpenFile,
@@ -141,28 +142,7 @@ export function Header({
         <ThemeToggle />
       </div>
     </header>
-    {breadcrumbs && (
-      <div className="breadcrumb">
-        {breadcrumbs.map((item, index) => (
-          <span key={index} style={{ display: 'contents' }}>
-            {index > 0 && <span className="breadcrumb-separator">/</span>}
-            {item.url ? (
-              <a
-                className="breadcrumb-item"
-                href={item.url}
-              >
-                {index === 0 && <i className="bi bi-folder2"></i>}
-                {item.name}
-              </a>
-            ) : (
-              <span className="breadcrumb-item current">
-                {item.name}
-              </span>
-            )}
-          </span>
-        ))}
-      </div>
-    )}
+    <Breadcrumb items={breadcrumbs} />
     </>
   )
 }
