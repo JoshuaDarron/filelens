@@ -32,9 +32,8 @@ export function Header({
   }, [])
 
   const handleOpenClick = () => {
-    if (onOpenFile) {
-      onOpenFile()
-    } else if (fileInputRef.current) {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
       fileInputRef.current.click()
     }
   }
