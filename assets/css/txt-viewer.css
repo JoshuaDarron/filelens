@@ -273,8 +273,25 @@
   overflow-y: auto;
 }
 
-.md-split-container.md-mode-split .md-editor-pane {
-  border-right: 1px solid var(--border-color);
+/* ========================================
+   Split View Divider
+   ======================================== */
+.md-split-divider {
+  width: 4px;
+  cursor: col-resize;
+  background: var(--border-color);
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.md-split-divider:hover,
+body.split-resizing .md-split-divider {
+  background: var(--button-primary);
+}
+
+body.split-resizing {
+  cursor: col-resize !important;
+  user-select: none;
 }
 
 .md-editor-textarea {

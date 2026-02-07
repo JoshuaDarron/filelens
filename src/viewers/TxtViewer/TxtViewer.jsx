@@ -28,6 +28,7 @@ export function TxtViewer() {
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
   const [viewMode, setViewMode] = useState(null) // null until file loads; 'edit' | 'split' | 'preview' for md, 'raw' for txt
   const [wordWrap, setWordWrap] = useState(true)
+  const [splitPosition, setSplitPosition] = useState(50) // percentage for editor pane width
 
   const isMarkdown = fileType === 'md'
 
@@ -35,6 +36,29 @@ export function TxtViewer() {
   const editorRef = useRef(null)
   const previewRef = useRef(null)
   const scrollingRef = useRef(null)
+  const containerRef = useRef(null)
+
+  const handleDividerMouseDown = useCallback((e) => {
+    e.preventDefault()
+    document.body.classList.add('split-resizing')
+
+    const onMouseMove = (moveEvent) => {
+      const container = containerRef.current
+      if (!container) return
+      const rect = container.getBoundingClientRect()
+      const pct = ((moveEvent.clientX - rect.left) / rect.width) * 100
+      setSplitPosition(Math.min(80, Math.max(20, pct)))
+    }
+
+    const onMouseUp = () => {
+      document.body.classList.remove('split-resizing')
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+    }
+
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseup', onMouseUp)
+  }, [])
 
   const handleSyncScroll = useCallback((source) => {
     if (scrollingRef.current && scrollingRef.current !== source) return
@@ -271,9 +295,12 @@ export function TxtViewer() {
       </Header>
       <main className="main-content">
         {isMarkdown ? (
-          <div className={`md-split-container md-mode-${viewMode}`}>
+          <div className={`md-split-container md-mode-${viewMode}`} ref={containerRef}>
             {(viewMode === 'edit' || viewMode === 'split') && (
-              <div className="md-editor-pane">
+              <div
+                className="md-editor-pane"
+                style={viewMode === 'split' ? { flex: `0 0 ${splitPosition}%` } : undefined}
+              >
                 <textarea
                   ref={editorRef}
                   className="md-editor-textarea"
@@ -284,11 +311,15 @@ export function TxtViewer() {
                 />
               </div>
             )}
+            {viewMode === 'split' && (
+              <div className="md-split-divider" onMouseDown={handleDividerMouseDown} />
+            )}
             {(viewMode === 'preview' || viewMode === 'split') && (
               <div
                 className="md-preview-pane"
                 ref={previewRef}
                 onScroll={viewMode === 'split' ? () => handleSyncScroll('preview') : undefined}
+                style={viewMode === 'split' ? { flex: 1 } : undefined}
               >
                 <div
                   className="markdown-content"
