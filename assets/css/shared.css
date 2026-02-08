@@ -59,6 +59,10 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
+}
+
+/* Only animate theme transitions after initial load (set via JS) */
+body.theme-ready {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 

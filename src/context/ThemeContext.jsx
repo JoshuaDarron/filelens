@@ -12,6 +12,13 @@ export function ThemeProvider({ children }) {
     localStorage.setItem('csvEditor-theme', theme)
   }, [theme])
 
+  // Enable theme transition animation only after initial render
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      document.body.classList.add('theme-ready')
+    })
+  }, [])
+
   const toggleTheme = useCallback(() => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light')
   }, [])
