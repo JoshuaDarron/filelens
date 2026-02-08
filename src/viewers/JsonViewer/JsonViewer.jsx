@@ -168,6 +168,17 @@ export function JsonViewer() {
     }
   }, [fileData, filename, toast])
 
+  const handleCopy = useCallback(async () => {
+    if (!fileData) return
+    try {
+      const text = JSON.stringify(fileData, null, 2)
+      await navigator.clipboard.writeText(text)
+      toast.success('Copied to clipboard!')
+    } catch {
+      toast.error('Failed to copy to clipboard')
+    }
+  }, [fileData, toast])
+
   // Load from URL on mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
@@ -272,6 +283,13 @@ export function JsonViewer() {
             Raw
           </button>
         </div>
+        <button
+          className="btn btn-outline"
+          onClick={handleCopy}
+          title="Copy to clipboard"
+        >
+          <i className="bi bi-clipboard"></i>
+        </button>
       </Header>
       <main className="main-content">
         <div className="json-container">
