@@ -1,3 +1,5 @@
+import './Breadcrumb.css'
+
 export function Breadcrumb({ items, onNavigate }) {
   if (!items || items.length === 0) return null
 
@@ -6,7 +8,7 @@ export function Breadcrumb({ items, onNavigate }) {
       {items.map((item, index) => {
         const isLast = index === items.length - 1
         return (
-          <span key={index} style={{ display: 'contents' }}>
+          <span key={index} className="breadcrumb-segment">
             {index > 0 && <span className="breadcrumb-separator">/</span>}
             {isLast ? (
               <span className="breadcrumb-item current">

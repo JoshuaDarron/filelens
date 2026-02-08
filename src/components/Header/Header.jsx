@@ -1,7 +1,8 @@
 import { useContext, useMemo } from 'react'
-import { FileContext } from '../context/FileContext'
-import { ThemeToggle } from './ThemeToggle'
-import { Breadcrumb } from './Breadcrumb'
+import { FileContext } from '../../context/FileContext'
+import { ThemeToggle } from '../ThemeToggle/ThemeToggle'
+import { Breadcrumb } from '../Breadcrumb/Breadcrumb'
+import './Header.css'
 
 export function Header({
   onSave,
@@ -57,7 +58,7 @@ export function Header({
     <>
     <header className="header">
       <div className="header-left">
-        <a href={`${window.location.pathname}?type=directory`} className="logo" style={{ textDecoration: 'none', color: 'inherit' }}>FileLens</a>
+        <a href={`${window.location.pathname}?type=directory`} className="logo logo-link">FileLens</a>
         {parentDirUrl && (
           <a href={parentDirUrl} className="btn btn-outline back-btn" title="Back to folder">
             <i className="bi bi-arrow-left"></i>
@@ -66,7 +67,7 @@ export function Header({
       </div>
       <div className="header-right">
         {stats && (
-          <div className="stats" style={{ display: 'flex' }}>
+          <div className="stats">
             {stats.rows !== undefined && (
               <div className="stat">
                 <i className="bi bi-bar-chart-steps"></i>

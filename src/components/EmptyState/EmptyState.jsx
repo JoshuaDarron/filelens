@@ -1,4 +1,5 @@
-import { DropZone } from './DropZone'
+import { DropZone } from '../DropZone/DropZone'
+import './EmptyState.css'
 
 export function EmptyState({
   icon = 'bi-file-earmark-spreadsheet',
@@ -34,13 +35,12 @@ export function EmptyState({
       </DropZone>
 
       {showCoffeeLink && (
-        <div style={{ marginTop: '32px' }}>
+        <div className="empty-coffee-link">
           <a
             href="https://paypal.me/joshuadarron?country.x=US&locale.x=en_US"
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-outline"
-            style={{ textDecoration: 'none' }}
           >
             <i className="bi bi-cup-hot"></i> Buy me a cup of coffee
           </a>

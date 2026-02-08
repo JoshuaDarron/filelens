@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useToast } from '../../hooks/useToast'
-import { Header } from '../../components/Header'
-import { Breadcrumb } from '../../components/Breadcrumb'
+import { Header } from '../../components/Header/Header'
+import { Breadcrumb } from '../../components/Breadcrumb/Breadcrumb'
 import { formatFileSize } from '../../utils/fileHelpers'
 
 // Parse Chrome's directory listing HTML to extract file entries

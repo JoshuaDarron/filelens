@@ -1,0 +1,60 @@
+/* Breadcrumb Component Styles */
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  overflow-x: auto;
+  padding: 8px 16px;
+  background: var(--bg-accent);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.breadcrumb-segment {
+  display: contents;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.breadcrumb-item:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.breadcrumb-item.current {
+  color: var(--text-primary);
+  font-weight: 500;
+  cursor: default;
+}
+
+.breadcrumb-item.current:hover {
+  background: transparent;
+}
+
+.breadcrumb-separator {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .breadcrumb {
+    padding: 8px 12px;
+  }
+
+  .breadcrumb-item {
+    padding: 4px 6px;
+    font-size: 13px;
+  }
+}

@@ -1,3 +1,5 @@
+import './Pagination.css'
+
 export function Pagination({
   currentPage,
   totalPages,
@@ -53,8 +55,7 @@ export function Pagination({
               page.type === 'ellipsis' ? (
                 <span
                   key={`ellipsis-${page.value}`}
-                  className="pagination-btn"
-                  style={{ cursor: 'default', border: 'none', background: 'transparent' }}
+                  className="pagination-btn pagination-ellipsis"
                 >
                   ...
                 </span>

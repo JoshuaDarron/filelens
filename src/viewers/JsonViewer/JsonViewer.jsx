@@ -2,8 +2,8 @@ import { useContext, useEffect, useCallback, useState } from 'react'
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { useFileLoader } from '../../hooks/useFileLoader'
-import { Header } from '../../components/Header'
-import { EmptyState } from '../../components/EmptyState'
+import { Header } from '../../components/Header/Header'
+import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile } from '../../utils/fileHelpers'
 
 function JsonNode({ data, path = '', level = 0, collapsed = false }) {

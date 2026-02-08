@@ -1,0 +1,49 @@
+/* ThemeToggle Component Styles */
+
+.theme-toggle {
+  background: var(--bg-accent);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  width: 60px;
+  height: 28px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+}
+
+.theme-toggle::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  background: var(--text-primary);
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  z-index: 2;
+}
+
+[data-theme="dark"] .theme-toggle::after {
+  transform: translateX(32px);
+}
+
+.theme-toggle .theme-icon-dark,
+.theme-toggle .theme-icon-light {
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+[data-theme="dark"] .theme-toggle .theme-icon-dark {
+  opacity: 0.3;
+}
+
+[data-theme="dark"] .theme-toggle .theme-icon-light {
+  opacity: 1;
+}

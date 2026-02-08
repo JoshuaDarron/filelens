@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import './Toast.css'
 
 export function Toast({ toast, onClose }) {
   const progressRef = useRef(null)

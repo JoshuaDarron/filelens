@@ -8,47 +8,44 @@ FileLens - A Chrome extension for viewing and editing various file types (CSV, J
 
 ## CSS Architecture
 
-The styling is organized into shared and viewer-specific files:
+Styling uses a two-tier approach:
+
+1. **Global styles** in `assets/css/shared.css` — theme variables, buttons, form inputs, content containers, animations, utility classes
+2. **Component-scoped styles** co-located with each component (imported via `import './Component.css'` in JSX — Vite bundles them automatically)
+3. **Viewer-specific styles** in `assets/css/` for each viewer type
 
 ```
 assets/css/
-├── shared.css          # Common styles: theme variables, buttons, toasts, header, etc.
+├── shared.css          # Global styles: theme variables, buttons, inputs, utilities
 ├── csv-viewer.css      # CSV/table-specific styles
 ├── json-viewer.css     # JSON tree view styles
 ├── txt-viewer.css      # Text/markdown viewer styles
 ├── file-browser.css    # File browser/directory listing styles
 └── viewer.css          # Legacy import file (imports shared + csv-viewer)
-```
 
-### Using Shared Styles
-
-For new viewers, import styles in your HTML:
-```html
-<link rel="stylesheet" href="assets/css/shared.css">
-<link rel="stylesheet" href="assets/css/[viewer-type].css">
-```
-
-Or use @import in CSS:
-```css
-@import url('shared.css');
-@import url('[viewer-type].css');
+src/components/
+├── Header/             # Header.jsx + Header.css
+├── ThemeToggle/        # ThemeToggle.jsx + ThemeToggle.css
+├── Toast/              # Toast.jsx, ToastContainer.jsx + Toast.css
+├── Breadcrumb/         # Breadcrumb.jsx + Breadcrumb.css
+├── EmptyState/         # EmptyState.jsx + EmptyState.css
+├── DropZone/           # DropZone.jsx + DropZone.css
+├── Pagination/         # Pagination.jsx + Pagination.css
+└── FileInput/          # FileInput.jsx (no CSS — uses global .btn classes)
 ```
 
 ### Theme System
 
 The theme system uses CSS custom properties. Toggle dark mode by setting `data-theme="dark"` on the body element. Theme preference is stored in localStorage as `csvEditor-theme`.
 
-### Key Components in shared.css
+### Key Styles in shared.css (globals only)
 
 - CSS variables for light/dark themes
 - Button styles (`.btn`, `.btn-primary`, `.btn-success`, etc.)
-- Toast notifications (`.toast`, `.toast-container`)
-- Header layout (`.header`, `.header-left`, `.header-right`)
-- Theme toggle (`.theme-toggle`)
-- Empty state / drop zone (`.empty-state`, `.drop-zone`)
-- Pagination controls (`.pagination-btn`, `.pagination-controls`)
 - Form inputs (`.input`)
-- Utility classes
+- Content container (`.content-container`, `.content-controls`, `.content-wrapper`)
+- Animations (`@keyframes spin`, `fadeIn`, `slideIn`)
+- Utility classes (`.hidden`, `.text-muted`, `.mt-*`, `.mb-*`, `.gap-*`)
 
 ## File Structure
 
@@ -56,8 +53,15 @@ The theme system uses CSS custom properties. Toggle dark mode by setting `data-t
 filelens/
 ├── manifest.json           # Chrome extension manifest v3
 ├── viewer.html             # CSV viewer page
+├── src/
+│   ├── App.jsx             # Main app component
+│   ├── components/         # Shared UI components (see CSS Architecture)
+│   ├── viewers/            # Viewer implementations (CsvViewer, JsonViewer, etc.)
+│   ├── context/            # React contexts
+│   ├── hooks/              # Custom hooks
+│   └── utils/              # Utility functions
 ├── assets/
-│   ├── css/               # Stylesheets (see above)
+│   ├── css/               # Global & viewer-specific stylesheets
 │   ├── js/
 │   │   ├── background.js  # Service worker
 │   │   ├── content.js     # Content script for CSV detection
