@@ -88,6 +88,11 @@ function copyExtensionAssets() {
 export default defineConfig({
   plugins: [react(), copyExtensionAssets()],
   base: './',
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.js'
+  },
   build: {
     outDir: 'dist',
     rollupOptions: {
