@@ -283,13 +283,29 @@ export function TxtViewer() {
           </div>
         )}
         {!isMarkdown && (
-          <button
-            className={`btn btn-outline ${!wordWrap ? 'active' : ''}`}
-            onClick={() => setWordWrap(!wordWrap)}
-            title="Toggle word wrap"
-          >
-            <i className="bi bi-text-wrap"></i>
-          </button>
+          <>
+            <div className="view-toggle">
+              <button
+                className={`view-toggle-btn ${viewMode === 'raw' ? 'active' : ''}`}
+                onClick={() => setViewMode('raw')}
+              >
+                View
+              </button>
+              <button
+                className={`view-toggle-btn ${viewMode === 'edit' ? 'active' : ''}`}
+                onClick={() => setViewMode('edit')}
+              >
+                Edit
+              </button>
+            </div>
+            <button
+              className={`btn btn-outline ${!wordWrap ? 'active' : ''}`}
+              onClick={() => setWordWrap(!wordWrap)}
+              title="Toggle word wrap"
+            >
+              <i className="bi bi-text-wrap"></i>
+            </button>
+          </>
         )}
       </Header>
       <main className="main-content">
@@ -329,18 +345,28 @@ export function TxtViewer() {
           </div>
         ) : (
           <div className="txt-container">
-            <div className="txt-wrapper">
-              <div className="line-numbers">
-                {lines.map((_, index) => (
-                  <span key={index} className="line-number">{index + 1}</span>
-                ))}
+            {viewMode === 'edit' ? (
+              <textarea
+                className="txt-editor-textarea"
+                value={fileData}
+                onChange={handleEditorChange}
+                spellCheck={false}
+                style={{ whiteSpace: wordWrap ? 'pre-wrap' : 'pre' }}
+              />
+            ) : (
+              <div className="txt-wrapper">
+                <div className="line-numbers">
+                  {lines.map((_, index) => (
+                    <span key={index} className="line-number">{index + 1}</span>
+                  ))}
+                </div>
+                <div className={`txt-content ${!wordWrap ? 'no-wrap' : ''}`}>
+                  {lines.map((line, index) => (
+                    <span key={index} className="txt-line">{line || '\u00A0'}</span>
+                  ))}
+                </div>
               </div>
-              <div className={`txt-content ${!wordWrap ? 'no-wrap' : ''}`}>
-                {lines.map((line, index) => (
-                  <span key={index} className="txt-line">{line || '\u00A0'}</span>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
         )}
       </main>
