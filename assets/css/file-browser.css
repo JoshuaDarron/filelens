@@ -291,6 +291,55 @@
 }
 
 /* ========================================
+   Grid Sort Control
+   ======================================== */
+.grid-sort-control {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.grid-sort-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.grid-sort-select {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 13px;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.grid-sort-select:focus {
+  outline: 2px solid var(--button-primary);
+  border-color: var(--button-primary);
+}
+
+.grid-sort-direction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border: none;
+  background: var(--bg-accent);
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.grid-sort-direction:hover {
+  color: var(--text-primary);
+}
+
+/* ========================================
    Context Menu
    ======================================== */
 .context-menu {

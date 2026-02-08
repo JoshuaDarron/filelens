@@ -577,6 +577,28 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
                 )}
               </div>
             </div>
+            {viewMode === 'grid' && (
+              <div className="grid-sort-control">
+                <label className="grid-sort-label">Sort by</label>
+                <select
+                  className="grid-sort-select"
+                  value={sortConfig.key}
+                  onChange={(e) => setSortConfig({ key: e.target.value, direction: sortConfig.direction })}
+                >
+                  <option value="name">Name</option>
+                  <option value="size">Size</option>
+                  <option value="modified">Modified</option>
+                  <option value="type">Type</option>
+                </select>
+                <button
+                  className="grid-sort-direction"
+                  onClick={() => setSortConfig(prev => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' }))}
+                  title={sortConfig.direction === 'asc' ? 'Ascending' : 'Descending'}
+                >
+                  <i className={`bi ${sortConfig.direction === 'asc' ? 'bi-sort-up' : 'bi-sort-down'}`}></i>
+                </button>
+              </div>
+            )}
           </div>
 
           {isLoading ? (
