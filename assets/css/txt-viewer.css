@@ -329,6 +329,16 @@ body.split-resizing {
   background: var(--bg-primary);
 }
 
+/* Full-screen edit/preview get extra horizontal indentation */
+.md-mode-edit .md-editor-textarea {
+  padding-left: max(24px, calc((100% - 900px) / 2));
+  padding-right: max(24px, calc((100% - 900px) / 2));
+}
+
+.md-mode-preview .markdown-content {
+  margin: 0 auto;
+}
+
 /* ========================================
    Search & Find
    ======================================== */
