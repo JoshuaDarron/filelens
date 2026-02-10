@@ -1,5 +1,7 @@
 import { useContext, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { marked } from 'marked'
+import { markedHighlight } from 'marked-highlight'
+import hljs from 'highlight.js'
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { useFileLoader } from '../../hooks/useFileLoader'
@@ -7,10 +9,47 @@ import { Header } from '../../components/Header/Header'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile, saveFile } from '../../utils/fileHelpers'
 
-marked.setOptions({
-  breaks: true,
-  gfm: true
-})
+const EXT_TO_LANG = {
+  jsx: 'javascript',
+  tsx: 'typescript',
+  mjs: 'javascript',
+  cjs: 'javascript',
+  hpp: 'cpp',
+  hxx: 'cpp',
+  cc: 'cpp',
+  cxx: 'cpp',
+  h: 'c',
+  ps1: 'powershell',
+  bat: 'dos',
+  cmd: 'dos',
+  sh: 'bash',
+  zsh: 'bash',
+  yml: 'yaml',
+  md: null,
+  txt: null,
+}
+
+function getLanguage(filename) {
+  if (!filename) return null
+  const ext = filename.split('.').pop()?.toLowerCase()
+  if (!ext) return null
+  if (ext in EXT_TO_LANG) return EXT_TO_LANG[ext]
+  if (hljs.getLanguage(ext)) return ext
+  return null
+}
+
+marked.use(
+  markedHighlight({
+    langPrefix: 'hljs language-',
+    highlight(code, lang) {
+      if (lang && hljs.getLanguage(lang)) {
+        return hljs.highlight(code, { language: lang }).value
+      }
+      return hljs.highlightAuto(code).value
+    }
+  }),
+  { breaks: true, gfm: true }
+)
 
 export function TxtViewer() {
   const {
@@ -91,6 +130,17 @@ export function TxtViewer() {
     if (!fileData || !isMarkdown) return ''
     return marked.parse(fileData)
   }, [fileData, isMarkdown])
+
+  const language = useMemo(() => getLanguage(filename), [filename])
+
+  const highlightedHtml = useMemo(() => {
+    if (!fileData || !language) return null
+    try {
+      return hljs.highlight(fileData, { language }).value
+    } catch {
+      return null
+    }
+  }, [fileData, language])
 
   const handleEditorChange = useCallback((e) => {
     updateData(e.target.value)
@@ -361,9 +411,16 @@ export function TxtViewer() {
                   ))}
                 </div>
                 <div className={`txt-content ${!wordWrap ? 'no-wrap' : ''}`}>
-                  {lines.map((line, index) => (
-                    <span key={index} className="txt-line">{line || '\u00A0'}</span>
-                  ))}
+                  {highlightedHtml ? (
+                    <code
+                      className="hljs"
+                      dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+                    />
+                  ) : (
+                    lines.map((line, index) => (
+                      <span key={index} className="txt-line">{line || '\u00A0'}</span>
+                    ))
+                  )}
                 </div>
               </div>
             )}
