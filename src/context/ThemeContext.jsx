@@ -9,6 +9,7 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
+    document.documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'light'
     localStorage.setItem('csvEditor-theme', theme)
   }, [theme])
 

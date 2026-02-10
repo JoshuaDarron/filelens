@@ -14,11 +14,20 @@
       // Apply saved theme before first paint to prevent white flash
       var t = localStorage.getItem('csvEditor-theme') || 'light';
       document.documentElement.setAttribute('data-theme', t);
-      if (t === 'dark') document.documentElement.style.colorScheme = 'dark';
+      document.documentElement.style.colorScheme = t === 'dark' ? 'dark' : 'light';
     </script>
     <style>
-      /* Critical dark-mode background applied before external CSS loads */
-      [data-theme="dark"] { background: #1a1a1a; color: #ffffff; }
+      /* Critical theme backgrounds applied before external CSS loads */
+      html[data-theme="dark"],
+      html[data-theme="dark"] body {
+        background: #1a1a1a;
+        color: #ffffff;
+      }
+      html[data-theme="light"],
+      html[data-theme="light"] body {
+        background: #ffffff;
+        color: #212529;
+      }
     </style>
 </head>
 <body>
