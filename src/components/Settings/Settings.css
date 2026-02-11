@@ -1,0 +1,202 @@
+/* Settings Page Styles */
+
+.settings-page {
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.settings-header {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow);
+}
+
+.settings-back-btn {
+  padding: 6px 10px;
+  font-size: 18px;
+}
+
+.settings-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.settings-body {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.settings-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.settings-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.settings-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.settings-option-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-option-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.settings-option-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Theme segmented control */
+.theme-selector {
+  display: flex;
+  background: var(--bg-accent);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-option:hover {
+  color: var(--text-primary);
+}
+
+.theme-option.active {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Divider between options within a section */
+.settings-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 14px 0;
+}
+
+/* Small button variant */
+.btn-sm {
+  padding: 5px 12px;
+  font-size: 13px;
+}
+
+/* Storage badge */
+.settings-storage-badge {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-accent);
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* About section */
+.about-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.about-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.about-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.about-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.about-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--button-primary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.about-link:hover {
+  text-decoration: underline;
+}
+
+.about-link .bi {
+  font-size: 11px;
+}
+
+.about-tagline {
+  margin: 16px 0 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .settings-option {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .theme-selector {
+    width: 100%;
+  }
+
+  .theme-option {
+    flex: 1;
+    justify-content: center;
+  }
+}

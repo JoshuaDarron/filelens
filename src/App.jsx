@@ -5,6 +5,7 @@ import { CsvViewer } from './viewers/CsvViewer'
 import { JsonViewer } from './viewers/JsonViewer'
 import { TxtViewer } from './viewers/TxtViewer'
 import { FileBrowser } from './viewers/FileBrowser'
+import { Settings } from './components/Settings/Settings'
 
 function App() {
   const [activeViewer, setActiveViewer] = useState(null)
@@ -16,7 +17,9 @@ function App() {
     const url = urlParams.get('url')
     const type = urlParams.get('type')
 
-    if (type === 'directory') {
+    if (type === 'settings') {
+      setActiveViewer('settings')
+    } else if (type === 'directory') {
       setActiveViewer('browser')
     } else if (type) {
       // Explicit type parameter takes precedence
@@ -58,6 +61,8 @@ function App() {
     const dirUrl = urlParams.get('type') === 'directory' ? urlParams.get('url') : null
 
     switch (activeViewer) {
+      case 'settings':
+        return <Settings />
       case 'json':
         return <JsonViewer />
       case 'txt':

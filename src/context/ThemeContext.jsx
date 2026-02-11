@@ -1,17 +1,41 @@
 import { createContext, useState, useEffect, useCallback } from 'react'
+import { useSettings } from '../hooks/useSettings'
 
 export const ThemeContext = createContext(null)
 
-export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('csvEditor-theme') || 'light'
-  })
+function getSystemTheme() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
 
+function resolveTheme(preference) {
+  if (preference === 'system') return getSystemTheme()
+  return preference
+}
+
+export function ThemeProvider({ children }) {
+  const { settings, updateSetting } = useSettings()
+  const themePreference = settings.theme || 'system'
+  const [resolvedTheme, setResolvedTheme] = useState(() => resolveTheme(themePreference))
+
+  // Resolve theme whenever preference changes
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    document.documentElement.style.colorScheme = theme === 'dark' ? 'dark' : 'light'
-    localStorage.setItem('csvEditor-theme', theme)
-  }, [theme])
+    setResolvedTheme(resolveTheme(themePreference))
+  }, [themePreference])
+
+  // Listen for OS theme changes when set to "system"
+  useEffect(() => {
+    if (themePreference !== 'system') return
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = () => setResolvedTheme(getSystemTheme())
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [themePreference])
+
+  // Apply theme to DOM
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', resolvedTheme)
+    document.documentElement.style.colorScheme = resolvedTheme === 'dark' ? 'dark' : 'light'
+  }, [resolvedTheme])
 
   // Enable theme transition animation only after initial render
   useEffect(() => {
@@ -20,15 +44,21 @@ export function ThemeProvider({ children }) {
     })
   }, [])
 
+  const setTheme = useCallback((value) => {
+    updateSetting('theme', value)
+  }, [updateSetting])
+
   const toggleTheme = useCallback(() => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light')
-  }, [])
+    const next = resolvedTheme === 'light' ? 'dark' : 'light'
+    updateSetting('theme', next)
+  }, [resolvedTheme, updateSetting])
 
   const value = {
-    theme,
+    theme: resolvedTheme,
+    themePreference,
     setTheme,
     toggleTheme,
-    isDark: theme === 'dark'
+    isDark: resolvedTheme === 'dark',
   }
 
   return (

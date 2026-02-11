@@ -45,6 +45,11 @@
   display: none;
 }
 
+.settings-gear-btn {
+  font-size: 18px;
+  padding: 6px 10px;
+}
+
 .file-info {
   color: var(--text-secondary);
   font-size: 14px;

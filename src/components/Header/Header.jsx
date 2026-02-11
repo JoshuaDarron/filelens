@@ -1,6 +1,5 @@
 import { useContext, useMemo } from 'react'
 import { FileContext } from '../../context/FileContext'
-import { ThemeToggle } from '../ThemeToggle/ThemeToggle'
 import { Breadcrumb } from '../Breadcrumb/Breadcrumb'
 import './Header.css'
 
@@ -111,7 +110,13 @@ export function Header({
           </button>
         )}
         {children}
-        <ThemeToggle />
+        <a
+          href={`${window.location.pathname}?type=settings`}
+          className="btn btn-outline settings-gear-btn"
+          title="Settings"
+        >
+          <i className="bi bi-gear"></i>
+        </a>
       </div>
     </header>
     <Breadcrumb items={breadcrumbs} />
