@@ -1,7 +1,7 @@
 import { createContext, useState, useCallback, useEffect } from 'react'
 import { useAISettings } from '../hooks/useAISettings'
 import { checkPromptAPIAvailability, downloadPromptModel } from '../services/ai/promptService'
-import { checkEmbeddingAvailability, loadEmbeddingModel as loadModel } from '../services/ai/embeddingService'
+import { checkEmbeddingAvailability, loadEmbeddingModel as loadModel, clearModelCache } from '../services/ai/embeddingService'
 
 export const AIContext = createContext(null)
 
@@ -71,6 +71,7 @@ export function AIProvider({ children }) {
     } else {
       setPromptStatus(initialStatus)
       setEmbeddingStatus(initialStatus)
+      clearModelCache()
     }
   }, [aiEnabled, detectCapabilities])
 
