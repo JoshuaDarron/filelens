@@ -152,7 +152,7 @@ export function Settings() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                joshuadarron.com
+                Joshua Phillips
                 <i className="bi bi-box-arrow-up-right"></i>
               </a>
             </div>
