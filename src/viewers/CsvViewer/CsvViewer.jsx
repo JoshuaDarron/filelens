@@ -1,4 +1,4 @@
-import { useContext, useEffect, useCallback, useState, useRef } from 'react'
+import { useContext, useEffect, useCallback, useState } from 'react'
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { usePagination } from '../../hooks/usePagination'
@@ -124,6 +124,32 @@ export function CsvViewer() {
 
   const totalDataRows = fileData ? fileData.length - 1 : 0
   const pagination = usePagination(totalDataRows)
+
+  const handleSearchResultClick = useCallback((result) => {
+    if (result.rowIndex == null) return
+
+    const dataRowIndex = result.rowIndex - 1 // 0-based data row
+    const targetPage = Math.floor(dataRowIndex / pagination.rowsPerPage) + 1
+
+    const scrollAndHighlight = () => {
+      const rowInPage = dataRowIndex - (targetPage - 1) * pagination.rowsPerPage
+      const row = document.querySelector(`#csvTable tbody tr:nth-child(${rowInPage + 1})`)
+      if (!row) return
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      row.classList.remove('ai-search-highlight')
+      // Force reflow so re-adding the class restarts the animation
+      void row.offsetWidth
+      row.classList.add('ai-search-highlight')
+      setTimeout(() => row.classList.remove('ai-search-highlight'), 2000)
+    }
+
+    if (targetPage !== pagination.currentPage) {
+      pagination.goToPage(targetPage)
+      setTimeout(scrollAndHighlight, 50)
+    } else {
+      scrollAndHighlight()
+    }
+  }, [pagination])
 
   const processCSVText = useCallback((text, fname, handle = null, url = null) => {
     try {
@@ -418,7 +444,7 @@ export function CsvViewer() {
             />
           )}
           {sidebar.activeTab === 'search' && (
-            <SemanticSearchView fileData={fileData} fileType="csv" />
+            <SemanticSearchView fileData={fileData} fileType="csv" onResultClick={handleSearchResultClick} />
           )}
           {sidebar.activeTab === 'suggestions' && (
             <SuggestionView

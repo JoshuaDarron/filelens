@@ -1,4 +1,4 @@
-import { useContext, useEffect, useCallback, useState, useMemo } from 'react'
+import { useContext, useEffect, useCallback, useState, useMemo, useRef } from 'react'
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { useFileLoader } from '../../hooks/useFileLoader'
@@ -120,6 +120,7 @@ export function JsonViewer() {
   const [suggestionsError, setSuggestionsError] = useState(null)
   const [viewMode, setViewMode] = useState('tree') // 'tree' or 'raw'
   const [rawText, setRawText] = useState('')
+  const rawPreRef = useRef(null)
 
   const generateSuggestions = useCallback(async () => {
     if (suggestions || suggestionsLoading) return
@@ -197,6 +198,45 @@ export function JsonViewer() {
     setSummaryError(null)
     handleAnalyze()
   }, [handleAnalyze])
+
+  const handleSearchResultClick = useCallback((result) => {
+    if (!result.text || !rawText) return
+
+    const wasTree = viewMode === 'tree'
+    if (wasTree) setViewMode('raw')
+
+    const scrollAndHighlight = () => {
+      const pre = rawPreRef.current
+      if (!pre) return
+
+      // Find the line containing the first key from the result text
+      const rawLines = rawText.split('\n')
+      const searchKey = result.text.split(':')[0]?.trim().replace(/"/g, '')
+      let targetLine = -1
+      if (searchKey) {
+        targetLine = rawLines.findIndex(line => line.includes(`"${searchKey}"`))
+      }
+      if (targetLine === -1) {
+        // Fallback: try matching any fragment of result text
+        const fragment = result.text.slice(0, 40)
+        targetLine = rawLines.findIndex(line => line.includes(fragment))
+      }
+      if (targetLine === -1) return
+
+      // Calculate scroll position based on line height
+      const lineHeight = parseFloat(getComputedStyle(pre).lineHeight) || 20
+      const scrollTop = targetLine * lineHeight - pre.clientHeight / 2
+      pre.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' })
+
+      // Use a temporary highlight span overlay
+      pre.classList.remove('ai-search-highlight')
+      void pre.offsetWidth
+      pre.classList.add('ai-search-highlight')
+      setTimeout(() => pre.classList.remove('ai-search-highlight'), 2000)
+    }
+
+    setTimeout(scrollAndHighlight, wasTree ? 50 : 0)
+  }, [viewMode, rawText])
 
   const processJSONText = useCallback((text, fname, handle = null, url = null) => {
     try {
@@ -400,7 +440,7 @@ export function JsonViewer() {
                   <JsonNode data={fileData} />
                 </div>
               ) : (
-                <pre className="json-raw">{rawText}</pre>
+                <pre className="json-raw" ref={rawPreRef}>{rawText}</pre>
               )}
             </div>
           </div>
@@ -420,7 +460,7 @@ export function JsonViewer() {
             />
           )}
           {sidebar.activeTab === 'search' && (
-            <SemanticSearchView fileData={fileData} fileType="json" />
+            <SemanticSearchView fileData={fileData} fileType="json" onResultClick={handleSearchResultClick} />
           )}
           {sidebar.activeTab === 'suggestions' && (
             <SuggestionView

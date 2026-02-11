@@ -161,7 +161,38 @@ export function TxtViewer() {
     setSummary(null)
     setSummaryError(null)
     handleAnalyze()
-  }, [handleAnalyze]) // null until file loads; 'edit' | 'split' | 'preview' for md, 'raw' for txt
+  }, [handleAnalyze])
+
+  const handleSearchResultClick = useCallback((result) => {
+    if (result.lineIndex == null) return
+
+    // Switch to view mode so we have scrollable line elements
+    if (viewMode === 'edit') {
+      setViewMode(isMarkdown ? 'preview' : 'raw')
+    }
+
+    const scrollAndHighlight = () => {
+      // For highlighted code, target line-number elements; for plain text, target .txt-line elements
+      const lineNumberEl = document.querySelector(`.line-numbers .line-number:nth-child(${result.lineIndex + 1})`)
+      const txtLineEl = document.querySelector(`.txt-content .txt-line:nth-child(${result.lineIndex + 1})`)
+      const target = txtLineEl || lineNumberEl
+      if (!target) return
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      target.classList.remove('ai-search-highlight')
+      void target.offsetWidth
+      target.classList.add('ai-search-highlight')
+      setTimeout(() => target.classList.remove('ai-search-highlight'), 2000)
+    }
+
+    // Delay if switching view modes to let React render
+    if (viewMode === 'edit') {
+      setTimeout(scrollAndHighlight, 50)
+    } else {
+      scrollAndHighlight()
+    }
+  }, [viewMode, isMarkdown])
+
+  // null until file loads; 'edit' | 'split' | 'preview' for md, 'raw' for txt
   const [wordWrap, setWordWrap] = useState(true)
   const [splitPosition, setSplitPosition] = useState(50) // percentage for editor pane width
 
@@ -543,7 +574,7 @@ export function TxtViewer() {
             />
           )}
           {aiSidebar.activeTab === 'search' && (
-            <SemanticSearchView fileData={fileData} fileType={fileType} />
+            <SemanticSearchView fileData={fileData} fileType={fileType} onResultClick={handleSearchResultClick} />
           )}
           {aiSidebar.activeTab === 'suggestions' && (
             <SuggestionView

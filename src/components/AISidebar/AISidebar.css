@@ -444,6 +444,17 @@
   }
 }
 
+/* Search result highlight animation */
+@keyframes searchHighlight {
+  0% { background-color: rgba(255, 196, 0, 0.35); }
+  70% { background-color: rgba(255, 196, 0, 0.35); }
+  100% { background-color: transparent; }
+}
+
+.ai-search-highlight {
+  animation: searchHighlight 2s ease-out forwards;
+}
+
 /* Mobile: bottom sheet */
 @media (max-width: 768px) {
   .ai-sidebar {
