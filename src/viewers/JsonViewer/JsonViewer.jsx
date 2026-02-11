@@ -1,10 +1,20 @@
-import { useContext, useEffect, useCallback, useState } from 'react'
+import { useContext, useEffect, useCallback, useState, useMemo } from 'react'
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { useFileLoader } from '../../hooks/useFileLoader'
 import { Header } from '../../components/Header/Header'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile } from '../../utils/fileHelpers'
+import { AISidebar } from '../../components/AISidebar/AISidebar'
+import { SummaryView } from '../../components/AISidebar/SummaryView'
+import { SemanticSearchView } from '../../components/AISidebar/SemanticSearchView'
+import { SuggestionView } from '../../components/AISidebar/SuggestionView'
+import { useAISidebar } from '../../hooks/useAISidebar'
+import { useAI } from '../../hooks/useAI'
+import { useAISettings } from '../../hooks/useAISettings'
+import { buildJsonSummaryPrompt } from '../../services/ai/summarizers'
+import { buildJsonEditSuggestionPrompt, parseSuggestions } from '../../services/ai/editSuggestions'
+import { createPromptSession, prompt as aiPrompt, destroySession } from '../../services/ai/promptService'
 
 function JsonNode({ data, path = '', level = 0, collapsed = false }) {
   const [isCollapsed, setIsCollapsed] = useState(collapsed && level > 2)
@@ -99,8 +109,94 @@ export function JsonViewer() {
 
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
+  const { aiEnabled } = useAISettings()
+  const { isAIReady } = useAI()
+  const sidebar = useAISidebar()
+  const [summary, setSummary] = useState(null)
+  const [summaryLoading, setSummaryLoading] = useState(false)
+  const [summaryError, setSummaryError] = useState(null)
+  const [suggestions, setSuggestions] = useState(null)
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false)
+  const [suggestionsError, setSuggestionsError] = useState(null)
   const [viewMode, setViewMode] = useState('tree') // 'tree' or 'raw'
   const [rawText, setRawText] = useState('')
+
+  const generateSuggestions = useCallback(async () => {
+    if (suggestions || suggestionsLoading) return
+
+    const promptText = buildJsonEditSuggestionPrompt(fileData)
+    if (!promptText) return
+
+    setSuggestionsLoading(true)
+    setSuggestionsError(null)
+
+    const { session, error: sessionError } = await createPromptSession({
+      systemPrompt: 'You are a data quality analyst. Suggest specific, actionable edits. Follow the exact output format requested.',
+    })
+
+    if (sessionError) {
+      setSuggestionsLoading(false)
+      setSuggestionsError(sessionError)
+      return
+    }
+
+    const { result, error: promptError } = await aiPrompt(promptText, session)
+    destroySession(session)
+
+    setSuggestionsLoading(false)
+    if (promptError) {
+      setSuggestionsError(promptError)
+    } else {
+      setSuggestions(parseSuggestions(result))
+    }
+  }, [suggestions, suggestionsLoading, fileData])
+
+  const handleDismissSuggestion = useCallback((index) => {
+    setSuggestions(prev => prev?.filter((_, i) => i !== index) || null)
+  }, [])
+
+  useEffect(() => {
+    if (sidebar.activeTab === 'suggestions' && sidebar.isSidebarOpen && !suggestions && !suggestionsLoading) {
+      generateSuggestions()
+    }
+  }, [sidebar.activeTab, sidebar.isSidebarOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleAnalyze = useCallback(async () => {
+    sidebar.toggleSidebar()
+    if (summary || summaryLoading) return
+
+    const promptText = buildJsonSummaryPrompt(fileData)
+    if (!promptText) return
+
+    setSummaryLoading(true)
+    setSummaryError(null)
+
+    const { session, error: sessionError } = await createPromptSession({
+      systemPrompt: 'You are a data analyst. Provide concise, structured analysis of JSON data. Use plain text, not markdown.',
+    })
+
+    if (sessionError) {
+      setSummaryLoading(false)
+      setSummaryError(sessionError)
+      return
+    }
+
+    const { result, error: promptError } = await aiPrompt(promptText, session)
+    destroySession(session)
+
+    setSummaryLoading(false)
+    if (promptError) {
+      setSummaryError(promptError)
+    } else {
+      setSummary(result)
+    }
+  }, [sidebar, summary, summaryLoading, fileData])
+
+  const handleRetrySummary = useCallback(() => {
+    setSummary(null)
+    setSummaryError(null)
+    handleAnalyze()
+  }, [handleAnalyze])
 
   const processJSONText = useCallback((text, fname, handle = null, url = null) => {
     try {
@@ -262,11 +358,15 @@ export function JsonViewer() {
     )
   }
 
+  const showAnalyze = aiEnabled && isAIReady
+
   return (
     <>
       <Header
         onExport={handleExport}
+        onAnalyze={handleAnalyze}
         showExport={true}
+        showAnalyze={showAnalyze}
         stats={getStats()}
       >
         <div className="view-toggle">
@@ -291,19 +391,48 @@ export function JsonViewer() {
           <i className="bi bi-clipboard"></i>
         </button>
       </Header>
-      <main className="main-content">
-        <div className="json-container">
-          <div className="json-wrapper">
-            {viewMode === 'tree' ? (
-              <div className="json-tree">
-                <JsonNode data={fileData} />
-              </div>
-            ) : (
-              <pre className="json-raw">{rawText}</pre>
-            )}
+      <div className="viewer-layout">
+        <main className="main-content">
+          <div className="json-container">
+            <div className="json-wrapper">
+              {viewMode === 'tree' ? (
+                <div className="json-tree">
+                  <JsonNode data={fileData} />
+                </div>
+              ) : (
+                <pre className="json-raw">{rawText}</pre>
+              )}
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+        <AISidebar
+          isOpen={sidebar.isSidebarOpen}
+          onClose={sidebar.closeSidebar}
+          activeTab={sidebar.activeTab}
+          onTabChange={sidebar.setActiveTab}
+        >
+          {sidebar.activeTab === 'summary' && (
+            <SummaryView
+              summary={summary}
+              isLoading={summaryLoading}
+              error={summaryError}
+              onRetry={handleRetrySummary}
+            />
+          )}
+          {sidebar.activeTab === 'search' && (
+            <SemanticSearchView fileData={fileData} fileType="json" />
+          )}
+          {sidebar.activeTab === 'suggestions' && (
+            <SuggestionView
+              suggestions={suggestions}
+              isLoading={suggestionsLoading}
+              error={suggestionsError}
+              onRetry={generateSuggestions}
+              onDismiss={handleDismissSuggestion}
+            />
+          )}
+        </AISidebar>
+      </div>
     </>
   )
 }

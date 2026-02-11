@@ -5,15 +5,18 @@ import { SettingsProvider } from './context/SettingsContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { ToastProvider } from './context/ToastContext'
 import { FileProvider } from './context/FileContext'
+import { AIProvider } from './context/AIContext'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <SettingsProvider>
       <ThemeProvider>
         <ToastProvider>
-          <FileProvider>
-            <App />
-          </FileProvider>
+          <AIProvider>
+            <FileProvider>
+              <App />
+            </FileProvider>
+          </AIProvider>
         </ToastProvider>
       </ThemeProvider>
     </SettingsProvider>

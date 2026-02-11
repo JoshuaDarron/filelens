@@ -6,8 +6,10 @@ import './Header.css'
 export function Header({
   onSave,
   onExport,
+  onAnalyze,
   showSave = false,
   showExport = false,
+  showAnalyze = false,
   stats = null,
   children
 }) {
@@ -110,6 +112,11 @@ export function Header({
           </button>
         )}
         {children}
+        {showAnalyze && (
+          <button className="btn btn-outline ai-analyze-btn" onClick={onAnalyze} title="AI Insights">
+            <i className="bi bi-stars"></i>
+          </button>
+        )}
         <a
           href={`${window.location.pathname}?type=settings`}
           className="btn btn-outline settings-gear-btn"

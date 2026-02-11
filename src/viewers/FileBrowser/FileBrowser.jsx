@@ -3,6 +3,14 @@ import { useToast } from '../../hooks/useToast'
 import { Header } from '../../components/Header/Header'
 import { Breadcrumb } from '../../components/Breadcrumb/Breadcrumb'
 import { formatFileSize } from '../../utils/fileHelpers'
+import { AISidebar } from '../../components/AISidebar/AISidebar'
+import { SummaryView } from '../../components/AISidebar/SummaryView'
+import { DirectorySearchView } from '../../components/AISidebar/DirectorySearchView'
+import { useAISidebar } from '../../hooks/useAISidebar'
+import { useAI } from '../../hooks/useAI'
+import { useAISettings } from '../../hooks/useAISettings'
+import { buildDirectorySummaryPrompt } from '../../services/ai/summarizers'
+import { createPromptSession, prompt as aiPrompt, destroySession } from '../../services/ai/promptService'
 
 // Parse Chrome's directory listing HTML to extract file entries
 function parseDirectoryListing(html, baseUrl) {
@@ -86,6 +94,12 @@ function buildBreadcrumbsFromUrl(dirUrl) {
 
 export function FileBrowser({ onFileSelect, dirUrl }) {
   const toast = useToast()
+  const { aiEnabled } = useAISettings()
+  const { isAIReady } = useAI()
+  const sidebar = useAISidebar()
+  const [summary, setSummary] = useState(null)
+  const [summaryLoading, setSummaryLoading] = useState(false)
+  const [summaryError, setSummaryError] = useState(null)
   const [files, setFiles] = useState([])
   const [currentPath, setCurrentPath] = useState([])
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('fileBrowser-viewMode') || 'list') // 'list' or 'grid'
@@ -531,9 +545,57 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
   // Clear search when navigating
   const clearSearch = () => setSearchQuery('')
 
+  const handleAnalyze = useCallback(async () => {
+    sidebar.toggleSidebar()
+    if (summary || summaryLoading) return
+
+    const promptText = buildDirectorySummaryPrompt(files)
+    if (!promptText) return
+
+    setSummaryLoading(true)
+    setSummaryError(null)
+
+    const { session, error: sessionError } = await createPromptSession({
+      systemPrompt: 'You are a file system analyst. Provide concise analysis of directory contents. Use plain text, not markdown.',
+    })
+
+    if (sessionError) {
+      setSummaryLoading(false)
+      setSummaryError(sessionError)
+      return
+    }
+
+    const { result, error: promptError } = await aiPrompt(promptText, session)
+    destroySession(session)
+
+    setSummaryLoading(false)
+    if (promptError) {
+      setSummaryError(promptError)
+    } else {
+      setSummary(result)
+    }
+  }, [sidebar, summary, summaryLoading, files])
+
+  const handleRetrySummary = useCallback(() => {
+    setSummary(null)
+    setSummaryError(null)
+    handleAnalyze()
+  }, [handleAnalyze])
+
+  // Reset summary when directory changes
+  useEffect(() => {
+    setSummary(null)
+    setSummaryError(null)
+  }, [directoryUrl, directoryHandle])
+
+  const showAnalyze = aiEnabled && isAIReady
+
   return (
     <>
-      <Header>
+      <Header
+        onAnalyze={handleAnalyze}
+        showAnalyze={showAnalyze}
+      >
         <div className="view-mode-toggle">
           <button
             className={`view-mode-btn ${viewMode === 'list' ? 'active' : ''}`}
@@ -551,6 +613,7 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
           </button>
         </div>
       </Header>
+      <div className="viewer-layout">
       <main className="main-content">
         <div className="browser-container">
           <Breadcrumb items={currentPath} onNavigate={navigateToBreadcrumb} />
@@ -704,6 +767,25 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
           )}
         </div>
       </main>
+      <AISidebar
+        isOpen={sidebar.isSidebarOpen}
+        onClose={sidebar.closeSidebar}
+        activeTab={sidebar.activeTab}
+        onTabChange={sidebar.setActiveTab}
+      >
+        {sidebar.activeTab === 'summary' && (
+          <SummaryView
+            summary={summary}
+            isLoading={summaryLoading}
+            error={summaryError}
+            onRetry={handleRetrySummary}
+          />
+        )}
+        {sidebar.activeTab === 'search' && (
+          <DirectorySearchView files={files} />
+        )}
+      </AISidebar>
+      </div>
     </>
   )
 }

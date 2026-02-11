@@ -92,6 +92,9 @@ function copyExtensionAssets() {
 export default defineConfig({
   plugins: [react(), copyExtensionAssets()],
   base: './',
+  optimizeDeps: {
+    exclude: ['@xenova/transformers']
+  },
   test: {
     globals: true,
     environment: 'jsdom',

@@ -45,6 +45,12 @@
   display: none;
 }
 
+.ai-analyze-btn {
+  font-size: 18px;
+  padding: 6px 10px;
+  color: var(--button-primary);
+}
+
 .settings-gear-btn {
   font-size: 18px;
   padding: 6px 10px;

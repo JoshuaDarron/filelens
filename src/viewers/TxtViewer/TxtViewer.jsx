@@ -8,6 +8,16 @@ import { useFileLoader } from '../../hooks/useFileLoader'
 import { Header } from '../../components/Header/Header'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile, saveFile } from '../../utils/fileHelpers'
+import { AISidebar } from '../../components/AISidebar/AISidebar'
+import { SummaryView } from '../../components/AISidebar/SummaryView'
+import { SemanticSearchView } from '../../components/AISidebar/SemanticSearchView'
+import { SuggestionView } from '../../components/AISidebar/SuggestionView'
+import { useAISidebar } from '../../hooks/useAISidebar'
+import { useAI } from '../../hooks/useAI'
+import { useAISettings } from '../../hooks/useAISettings'
+import { buildTxtSummaryPrompt } from '../../services/ai/summarizers'
+import { buildTxtEditSuggestionPrompt, parseSuggestions } from '../../services/ai/editSuggestions'
+import { createPromptSession, prompt as aiPrompt, destroySession } from '../../services/ai/promptService'
 
 const EXT_TO_LANG = {
   jsx: 'javascript',
@@ -65,7 +75,93 @@ export function TxtViewer() {
 
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
-  const [viewMode, setViewMode] = useState(null) // null until file loads; 'edit' | 'split' | 'preview' for md, 'raw' for txt
+  const { aiEnabled } = useAISettings()
+  const { isAIReady } = useAI()
+  const aiSidebar = useAISidebar()
+  const [summary, setSummary] = useState(null)
+  const [summaryLoading, setSummaryLoading] = useState(false)
+  const [summaryError, setSummaryError] = useState(null)
+  const [suggestions, setSuggestions] = useState(null)
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false)
+  const [suggestionsError, setSuggestionsError] = useState(null)
+  const [viewMode, setViewMode] = useState(null)
+
+  const generateSuggestions = useCallback(async () => {
+    if (suggestions || suggestionsLoading) return
+
+    const promptText = buildTxtEditSuggestionPrompt(fileData, fileType)
+    if (!promptText) return
+
+    setSuggestionsLoading(true)
+    setSuggestionsError(null)
+
+    const { session, error: sessionError } = await createPromptSession({
+      systemPrompt: 'You are a writing assistant. Suggest specific, actionable edits. Follow the exact output format requested.',
+    })
+
+    if (sessionError) {
+      setSuggestionsLoading(false)
+      setSuggestionsError(sessionError)
+      return
+    }
+
+    const { result, error: promptError } = await aiPrompt(promptText, session)
+    destroySession(session)
+
+    setSuggestionsLoading(false)
+    if (promptError) {
+      setSuggestionsError(promptError)
+    } else {
+      setSuggestions(parseSuggestions(result))
+    }
+  }, [suggestions, suggestionsLoading, fileData, fileType])
+
+  const handleDismissSuggestion = useCallback((index) => {
+    setSuggestions(prev => prev?.filter((_, i) => i !== index) || null)
+  }, [])
+
+  useEffect(() => {
+    if (aiSidebar.activeTab === 'suggestions' && aiSidebar.isSidebarOpen && !suggestions && !suggestionsLoading) {
+      generateSuggestions()
+    }
+  }, [aiSidebar.activeTab, aiSidebar.isSidebarOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleAnalyze = useCallback(async () => {
+    aiSidebar.toggleSidebar()
+    if (summary || summaryLoading) return
+
+    const promptText = buildTxtSummaryPrompt(fileData, fileType)
+    if (!promptText) return
+
+    setSummaryLoading(true)
+    setSummaryError(null)
+
+    const { session, error: sessionError } = await createPromptSession({
+      systemPrompt: 'You are a document analyst. Provide concise, structured analysis of text content. Use plain text, not markdown.',
+    })
+
+    if (sessionError) {
+      setSummaryLoading(false)
+      setSummaryError(sessionError)
+      return
+    }
+
+    const { result, error: promptError } = await aiPrompt(promptText, session)
+    destroySession(session)
+
+    setSummaryLoading(false)
+    if (promptError) {
+      setSummaryError(promptError)
+    } else {
+      setSummary(result)
+    }
+  }, [aiSidebar, summary, summaryLoading, fileData, fileType])
+
+  const handleRetrySummary = useCallback(() => {
+    setSummary(null)
+    setSummaryError(null)
+    handleAnalyze()
+  }, [handleAnalyze]) // null until file loads; 'edit' | 'split' | 'preview' for md, 'raw' for txt
   const [wordWrap, setWordWrap] = useState(true)
   const [splitPosition, setSplitPosition] = useState(50) // percentage for editor pane width
 
@@ -301,13 +397,17 @@ export function TxtViewer() {
     )
   }
 
+  const showAnalyze = aiEnabled && isAIReady
+
   return (
     <>
       <Header
         onSave={handleSave}
         onExport={handleExport}
+        onAnalyze={handleAnalyze}
         showSave={!!fileHandle}
         showExport={true}
+        showAnalyze={showAnalyze}
         stats={stats}
       >
         {isMarkdown && (
@@ -358,75 +458,104 @@ export function TxtViewer() {
           </>
         )}
       </Header>
-      <main className="main-content">
-        {isMarkdown ? (
-          <div className={`md-split-container md-mode-${viewMode}`} ref={containerRef}>
-            {(viewMode === 'edit' || viewMode === 'split') && (
-              <div
-                className="md-editor-pane"
-                style={viewMode === 'split' ? { flex: `0 0 ${splitPosition}%` } : undefined}
-              >
+      <div className="viewer-layout">
+        <main className="main-content">
+          {isMarkdown ? (
+            <div className={`md-split-container md-mode-${viewMode}`} ref={containerRef}>
+              {(viewMode === 'edit' || viewMode === 'split') && (
+                <div
+                  className="md-editor-pane"
+                  style={viewMode === 'split' ? { flex: `0 0 ${splitPosition}%` } : undefined}
+                >
+                  <textarea
+                    ref={editorRef}
+                    className="md-editor-textarea"
+                    value={fileData}
+                    onChange={handleEditorChange}
+                    onScroll={viewMode === 'split' ? () => handleSyncScroll('editor') : undefined}
+                    spellCheck={false}
+                  />
+                </div>
+              )}
+              {viewMode === 'split' && (
+                <div className="md-split-divider" onMouseDown={handleDividerMouseDown} />
+              )}
+              {(viewMode === 'preview' || viewMode === 'split') && (
+                <div
+                  className="md-preview-pane"
+                  ref={previewRef}
+                  onScroll={viewMode === 'split' ? () => handleSyncScroll('preview') : undefined}
+                  style={viewMode === 'split' ? { flex: 1 } : undefined}
+                >
+                  <div
+                    className="markdown-content"
+                    dangerouslySetInnerHTML={{ __html: renderedHtml }}
+                  />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="txt-container">
+              {viewMode === 'edit' ? (
                 <textarea
-                  ref={editorRef}
-                  className="md-editor-textarea"
+                  className="txt-editor-textarea"
                   value={fileData}
                   onChange={handleEditorChange}
-                  onScroll={viewMode === 'split' ? () => handleSyncScroll('editor') : undefined}
                   spellCheck={false}
+                  style={{ whiteSpace: wordWrap ? 'pre-wrap' : 'pre' }}
                 />
-              </div>
-            )}
-            {viewMode === 'split' && (
-              <div className="md-split-divider" onMouseDown={handleDividerMouseDown} />
-            )}
-            {(viewMode === 'preview' || viewMode === 'split') && (
-              <div
-                className="md-preview-pane"
-                ref={previewRef}
-                onScroll={viewMode === 'split' ? () => handleSyncScroll('preview') : undefined}
-                style={viewMode === 'split' ? { flex: 1 } : undefined}
-              >
-                <div
-                  className="markdown-content"
-                  dangerouslySetInnerHTML={{ __html: renderedHtml }}
-                />
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="txt-container">
-            {viewMode === 'edit' ? (
-              <textarea
-                className="txt-editor-textarea"
-                value={fileData}
-                onChange={handleEditorChange}
-                spellCheck={false}
-                style={{ whiteSpace: wordWrap ? 'pre-wrap' : 'pre' }}
-              />
-            ) : (
-              <div className="txt-wrapper">
-                <div className="line-numbers">
-                  {lines.map((_, index) => (
-                    <span key={index} className="line-number">{index + 1}</span>
-                  ))}
+              ) : (
+                <div className="txt-wrapper">
+                  <div className="line-numbers">
+                    {lines.map((_, index) => (
+                      <span key={index} className="line-number">{index + 1}</span>
+                    ))}
+                  </div>
+                  <div className={`txt-content ${!wordWrap ? 'no-wrap' : ''}`}>
+                    {highlightedHtml ? (
+                      <code
+                        className="hljs"
+                        dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+                      />
+                    ) : (
+                      lines.map((line, index) => (
+                        <span key={index} className="txt-line">{line || '\u00A0'}</span>
+                      ))
+                    )}
+                  </div>
                 </div>
-                <div className={`txt-content ${!wordWrap ? 'no-wrap' : ''}`}>
-                  {highlightedHtml ? (
-                    <code
-                      className="hljs"
-                      dangerouslySetInnerHTML={{ __html: highlightedHtml }}
-                    />
-                  ) : (
-                    lines.map((line, index) => (
-                      <span key={index} className="txt-line">{line || '\u00A0'}</span>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </main>
+              )}
+            </div>
+          )}
+        </main>
+        <AISidebar
+          isOpen={aiSidebar.isSidebarOpen}
+          onClose={aiSidebar.closeSidebar}
+          activeTab={aiSidebar.activeTab}
+          onTabChange={aiSidebar.setActiveTab}
+        >
+          {aiSidebar.activeTab === 'summary' && (
+            <SummaryView
+              summary={summary}
+              isLoading={summaryLoading}
+              error={summaryError}
+              onRetry={handleRetrySummary}
+            />
+          )}
+          {aiSidebar.activeTab === 'search' && (
+            <SemanticSearchView fileData={fileData} fileType={fileType} />
+          )}
+          {aiSidebar.activeTab === 'suggestions' && (
+            <SuggestionView
+              suggestions={suggestions}
+              isLoading={suggestionsLoading}
+              error={suggestionsError}
+              onRetry={generateSuggestions}
+              onDismiss={handleDismissSuggestion}
+            />
+          )}
+        </AISidebar>
+      </div>
     </>
   )
 }
