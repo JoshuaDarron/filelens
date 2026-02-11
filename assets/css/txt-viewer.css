@@ -25,6 +25,15 @@
   overflow: auto;
   max-height: calc(100vh - 121px);
   display: flex;
+  align-items: flex-start;
+}
+
+.txt-wrapper .line-numbers {
+  min-height: calc(100vh - 121px);
+}
+
+.txt-wrapper .txt-content {
+  min-height: calc(100vh - 121px);
 }
 
 /* ========================================

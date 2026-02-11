@@ -163,6 +163,12 @@ export function TxtViewer() {
     handleAnalyze()
   }, [handleAnalyze])
 
+  // null until file loads; 'edit' | 'split' | 'preview' for md, 'raw' for txt
+  const [wordWrap, setWordWrap] = useState(true)
+  const [splitPosition, setSplitPosition] = useState(50) // percentage for editor pane width
+
+  const isMarkdown = fileType === 'md'
+
   const handleSearchResultClick = useCallback((result) => {
     if (result.lineIndex == null) return
 
@@ -191,12 +197,6 @@ export function TxtViewer() {
       scrollAndHighlight()
     }
   }, [viewMode, isMarkdown])
-
-  // null until file loads; 'edit' | 'split' | 'preview' for md, 'raw' for txt
-  const [wordWrap, setWordWrap] = useState(true)
-  const [splitPosition, setSplitPosition] = useState(50) // percentage for editor pane width
-
-  const isMarkdown = fileType === 'md'
 
   // Synchronous scrolling for split mode
   const editorRef = useRef(null)

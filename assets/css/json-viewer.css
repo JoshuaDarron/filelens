@@ -25,16 +25,19 @@
   overflow: auto;
   max-height: calc(100vh - 121px);
   display: flex;
+  align-items: flex-start;
 }
 
 .json-wrapper .json-tree {
   padding: 16px;
+  min-height: calc(100vh - 121px);
 }
 
 .json-wrapper .line-numbers {
   position: sticky;
   left: 0;
   z-index: 1;
+  min-height: calc(100vh - 121px);
 }
 
 /* ========================================
@@ -210,17 +213,20 @@
   flex: 1;
   overflow: auto;
   max-height: calc(100vh - 121px);
+  align-items: flex-start;
 }
 
 .json-raw-wrapper .line-numbers {
   position: sticky;
   left: 0;
   z-index: 1;
+  min-height: calc(100vh - 121px);
 }
 
 .json-raw {
   flex: 1;
   margin: 0;
+  min-height: calc(100vh - 121px);
   padding: 16px;
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
   font-size: 13px;
