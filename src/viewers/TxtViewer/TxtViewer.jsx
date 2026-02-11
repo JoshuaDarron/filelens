@@ -203,6 +203,14 @@ export function TxtViewer() {
   const previewRef = useRef(null)
   const scrollingRef = useRef(null)
   const containerRef = useRef(null)
+  const editLineNumRef = useRef(null)
+  const mdLineNumRef = useRef(null)
+
+  const handleEditScroll = useCallback((e) => {
+    if (editLineNumRef.current) {
+      editLineNumRef.current.scrollTop = e.target.scrollTop
+    }
+  }, [])
 
   const handleDividerMouseDown = useCallback((e) => {
     e.preventDefault()
@@ -242,6 +250,13 @@ export function TxtViewer() {
 
     requestAnimationFrame(() => { scrollingRef.current = null })
   }, [])
+
+  const handleMdEditScroll = useCallback((e) => {
+    if (mdLineNumRef.current) {
+      mdLineNumRef.current.scrollTop = e.target.scrollTop
+    }
+    if (viewMode === 'split') handleSyncScroll('editor')
+  }, [viewMode, handleSyncScroll])
 
   // Set default view mode when file type changes
   useEffect(() => {
@@ -498,12 +513,17 @@ export function TxtViewer() {
                   className="md-editor-pane"
                   style={viewMode === 'split' ? { flex: `0 0 ${splitPosition}%` } : undefined}
                 >
+                  <div className="line-numbers md-line-numbers" ref={mdLineNumRef}>
+                    {lines.map((_, i) => (
+                      <span key={i} className="line-number">{i + 1}</span>
+                    ))}
+                  </div>
                   <textarea
                     ref={editorRef}
                     className="md-editor-textarea"
                     value={fileData}
                     onChange={handleEditorChange}
-                    onScroll={viewMode === 'split' ? () => handleSyncScroll('editor') : undefined}
+                    onScroll={handleMdEditScroll}
                     spellCheck={false}
                   />
                 </div>
@@ -528,13 +548,21 @@ export function TxtViewer() {
           ) : (
             <div className="txt-container">
               {viewMode === 'edit' ? (
-                <textarea
-                  className="txt-editor-textarea"
-                  value={fileData}
-                  onChange={handleEditorChange}
-                  spellCheck={false}
-                  style={{ whiteSpace: wordWrap ? 'pre-wrap' : 'pre' }}
-                />
+                <div className="txt-editor-wrapper">
+                  <div className="line-numbers" ref={editLineNumRef}>
+                    {lines.map((_, i) => (
+                      <span key={i} className="line-number">{i + 1}</span>
+                    ))}
+                  </div>
+                  <textarea
+                    className="txt-editor-textarea"
+                    value={fileData}
+                    onChange={handleEditorChange}
+                    spellCheck={false}
+                    style={{ whiteSpace: wordWrap ? 'pre-wrap' : 'pre' }}
+                    onScroll={handleEditScroll}
+                  />
+                </div>
               ) : (
                 <div className="txt-wrapper">
                   <div className="line-numbers">

@@ -168,6 +168,7 @@ export function CsvTable({
       <table ref={tableRef} id="csvTable">
         <thead>
           <tr>
+            <th className="row-number">#</th>
             {headers.map((header, index) => (
               <th
                 key={index}
@@ -189,6 +190,7 @@ export function CsvTable({
         <tbody>
           {rows.map((row, rowIndex) => (
             <tr key={startIndex + rowIndex + 1}>
+              <td className="row-number">{startIndex + rowIndex + 1}</td>
               {headers.map((_, colIndex) => (
                 <td key={colIndex}>
                   <input

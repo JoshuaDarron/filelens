@@ -121,6 +121,7 @@ export function JsonViewer() {
   const [viewMode, setViewMode] = useState('tree') // 'tree' or 'raw'
   const [rawText, setRawText] = useState('')
   const rawPreRef = useRef(null)
+  const rawLines = useMemo(() => rawText ? rawText.split('\n') : [], [rawText])
 
   const generateSuggestions = useCallback(async () => {
     if (suggestions || suggestionsLoading) return
@@ -434,15 +435,27 @@ export function JsonViewer() {
       <div className="viewer-layout">
         <main className="main-content">
           <div className="json-container">
-            <div className="json-wrapper">
-              {viewMode === 'tree' ? (
+            {viewMode === 'tree' ? (
+              <div className="json-wrapper">
+                <div className="line-numbers">
+                  {rawLines.map((_, i) => (
+                    <span key={i} className="line-number">{i + 1}</span>
+                  ))}
+                </div>
                 <div className="json-tree">
                   <JsonNode data={fileData} />
                 </div>
-              ) : (
+              </div>
+            ) : (
+              <div className="json-raw-wrapper">
+                <div className="line-numbers">
+                  {rawLines.map((_, i) => (
+                    <span key={i} className="line-number">{i + 1}</span>
+                  ))}
+                </div>
                 <pre className="json-raw" ref={rawPreRef}>{rawText}</pre>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </main>
         <AISidebar

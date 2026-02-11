@@ -116,6 +116,13 @@ body.col-resizing * {
   min-width: 50px;
   max-width: 50px;
   user-select: none;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+th.row-number {
+  z-index: 11;
 }
 
 /* ========================================
