@@ -145,6 +145,18 @@ export function Settings() {
               </a>
             </div>
             <div className="about-row">
+              <span className="about-label">Developer</span>
+              <a
+                className="about-link"
+                href="https://joshuadarron.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                joshuadarron.com
+                <i className="bi bi-box-arrow-up-right"></i>
+              </a>
+            </div>
+            <div className="about-row">
               <span className="about-label">License</span>
               <span className="about-value">MIT</span>
             </div>
