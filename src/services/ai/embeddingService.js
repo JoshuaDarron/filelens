@@ -65,16 +65,21 @@ export async function embedText(text) {
   }
 }
 
-export async function embedBatch(texts) {
+export async function embedBatch(texts, onProgress) {
   if (!modelInstance) {
     return { embeddings: null, error: 'Embedding model not loaded' }
   }
 
   try {
     const embeddings = []
-    for (const text of texts) {
-      const output = await modelInstance(text, { pooling: 'mean', normalize: true })
+    for (let i = 0; i < texts.length; i++) {
+      const output = await modelInstance(texts[i], { pooling: 'mean', normalize: true })
       embeddings.push(Array.from(output.data))
+      onProgress?.((i + 1) / texts.length)
+      // Yield to the UI every 4 chunks to prevent freezing
+      if (i % 4 === 3) {
+        await new Promise(r => setTimeout(r, 0))
+      }
     }
     return { embeddings, error: null }
   } catch (err) {

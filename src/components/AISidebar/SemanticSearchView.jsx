@@ -1,53 +1,18 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { LoadingState } from './LoadingState'
 import { ErrorState } from './ErrorState'
 import { SearchResult } from './SearchResult'
-import { chunkForSearch, buildSearchIndex, searchIndex } from '../../services/ai/semanticSearch'
+import { searchIndex } from '../../services/ai/semanticSearch'
 import { getModelStatus } from '../../services/ai/embeddingService'
 
-export function SemanticSearchView({ fileData, fileType, onResultClick }) {
+export function SemanticSearchView({ index, indexing, indexProgress, indexError, onResultClick }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
-  const [index, setIndex] = useState(null)
-  const [indexing, setIndexing] = useState(false)
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState(null)
   const debounceRef = useRef(null)
 
   const modelReady = getModelStatus() === 'ready'
-
-  // Build index on mount if model is ready
-  useEffect(() => {
-    if (!modelReady || !fileData || index) return
-
-    let cancelled = false
-
-    const buildIndex = async () => {
-      setIndexing(true)
-      setError(null)
-
-      const chunks = chunkForSearch(fileData, fileType)
-      if (chunks.length === 0) {
-        setIndexing(false)
-        setError('No content to index')
-        return
-      }
-
-      const { index: builtIndex, error: indexError } = await buildSearchIndex(chunks)
-
-      if (cancelled) return
-
-      setIndexing(false)
-      if (indexError) {
-        setError(indexError)
-      } else {
-        setIndex(builtIndex)
-      }
-    }
-
-    buildIndex()
-    return () => { cancelled = true }
-  }, [modelReady, fileData, fileType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = useCallback(async (searchQuery) => {
     if (!searchQuery.trim() || !index) {
@@ -84,11 +49,20 @@ export function SemanticSearchView({ fileData, fileType, onResultClick }) {
   }
 
   if (indexing) {
-    return <LoadingState message="Building search index..." />
+    const pct = Math.round(indexProgress * 100)
+    return (
+      <div className="ai-loading-state">
+        <div className="ai-loading-spinner"></div>
+        <p>Building search index... {pct}%</p>
+        <div className="ai-progress-bar">
+          <div className="ai-progress-fill" style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+    )
   }
 
-  if (error && !index) {
-    return <ErrorState message={error} />
+  if (indexError && !index) {
+    return <ErrorState message={indexError} />
   }
 
   return (

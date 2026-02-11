@@ -12,6 +12,7 @@ import { SuggestionView } from '../../components/AISidebar/SuggestionView'
 import { useAISidebar } from '../../hooks/useAISidebar'
 import { useAI } from '../../hooks/useAI'
 import { useAISettings } from '../../hooks/useAISettings'
+import { useSearchIndex } from '../../hooks/useSearchIndex'
 import { buildJsonSummaryPrompt } from '../../services/ai/summarizers'
 import { buildJsonEditSuggestionPrompt, parseSuggestions } from '../../services/ai/editSuggestions'
 import { createPromptSession, prompt as aiPrompt, destroySession } from '../../services/ai/promptService'
@@ -112,6 +113,7 @@ export function JsonViewer() {
   const { aiEnabled } = useAISettings()
   const { isAIReady } = useAI()
   const sidebar = useAISidebar()
+  const searchIndex = useSearchIndex(fileData, 'json')
   const [summary, setSummary] = useState(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [summaryError, setSummaryError] = useState(null)
@@ -203,40 +205,40 @@ export function JsonViewer() {
   const handleSearchResultClick = useCallback((result) => {
     if (!result.text || !rawText) return
 
-    const wasTree = viewMode === 'tree'
-    if (wasTree) setViewMode('raw')
+    const searchKey = result.text.split(':')[0]?.trim().replace(/"/g, '')
 
-    const scrollAndHighlight = () => {
-      const pre = rawPreRef.current
-      if (!pre) return
-
-      // Find the line containing the first key from the result text
-      const rawLines = rawText.split('\n')
-      const searchKey = result.text.split(':')[0]?.trim().replace(/"/g, '')
+    if (viewMode === 'tree') {
+      // Find matching key in the tree DOM
+      if (!searchKey) return
+      const keyEls = document.querySelectorAll('.json-key')
+      const target = Array.from(keyEls).find(el => el.textContent === `"${searchKey}"`)
+      if (!target) return
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      target.classList.remove('ai-search-highlight')
+      void target.offsetWidth
+      target.classList.add('ai-search-highlight')
+      setTimeout(() => target.classList.remove('ai-search-highlight'), 2000)
+    } else {
+      // Raw view — find the matching line and highlight it
+      const lines = rawText.split('\n')
       let targetLine = -1
       if (searchKey) {
-        targetLine = rawLines.findIndex(line => line.includes(`"${searchKey}"`))
+        targetLine = lines.findIndex(line => line.includes(`"${searchKey}"`))
       }
       if (targetLine === -1) {
-        // Fallback: try matching any fragment of result text
         const fragment = result.text.slice(0, 40)
-        targetLine = rawLines.findIndex(line => line.includes(fragment))
+        targetLine = lines.findIndex(line => line.includes(fragment))
       }
       if (targetLine === -1) return
 
-      // Calculate scroll position based on line height
-      const lineHeight = parseFloat(getComputedStyle(pre).lineHeight) || 20
-      const scrollTop = targetLine * lineHeight - pre.clientHeight / 2
-      pre.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' })
-
-      // Use a temporary highlight span overlay
-      pre.classList.remove('ai-search-highlight')
-      void pre.offsetWidth
-      pre.classList.add('ai-search-highlight')
-      setTimeout(() => pre.classList.remove('ai-search-highlight'), 2000)
+      const lineEl = document.querySelector(`.line-numbers .line-number:nth-child(${targetLine + 1})`)
+      if (!lineEl) return
+      lineEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      lineEl.classList.remove('ai-search-highlight')
+      void lineEl.offsetWidth
+      lineEl.classList.add('ai-search-highlight')
+      setTimeout(() => lineEl.classList.remove('ai-search-highlight'), 2000)
     }
-
-    setTimeout(scrollAndHighlight, wasTree ? 50 : 0)
   }, [viewMode, rawText])
 
   const processJSONText = useCallback((text, fname, handle = null, url = null) => {
@@ -473,7 +475,7 @@ export function JsonViewer() {
             />
           )}
           {sidebar.activeTab === 'search' && (
-            <SemanticSearchView fileData={fileData} fileType="json" onResultClick={handleSearchResultClick} />
+            <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
           )}
           {sidebar.activeTab === 'suggestions' && (
             <SuggestionView

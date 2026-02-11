@@ -15,6 +15,7 @@ import { SemanticSearchView } from '../../components/AISidebar/SemanticSearchVie
 import { useAISidebar } from '../../hooks/useAISidebar'
 import { useAI } from '../../hooks/useAI'
 import { useAISettings } from '../../hooks/useAISettings'
+import { useSearchIndex } from '../../hooks/useSearchIndex'
 import { SuggestionView } from '../../components/AISidebar/SuggestionView'
 import { buildCsvSummaryPrompt } from '../../services/ai/summarizers'
 import { buildCsvEditSuggestionPrompt, parseSuggestions } from '../../services/ai/editSuggestions'
@@ -37,6 +38,7 @@ export function CsvViewer() {
   const { aiEnabled } = useAISettings()
   const { isAIReady } = useAI()
   const sidebar = useAISidebar()
+  const searchIndex = useSearchIndex(fileData, 'csv')
   const [summary, setSummary] = useState(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [summaryError, setSummaryError] = useState(null)
@@ -444,7 +446,7 @@ export function CsvViewer() {
             />
           )}
           {sidebar.activeTab === 'search' && (
-            <SemanticSearchView fileData={fileData} fileType="csv" onResultClick={handleSearchResultClick} />
+            <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
           )}
           {sidebar.activeTab === 'suggestions' && (
             <SuggestionView

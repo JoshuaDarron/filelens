@@ -15,6 +15,7 @@ import { SuggestionView } from '../../components/AISidebar/SuggestionView'
 import { useAISidebar } from '../../hooks/useAISidebar'
 import { useAI } from '../../hooks/useAI'
 import { useAISettings } from '../../hooks/useAISettings'
+import { useSearchIndex } from '../../hooks/useSearchIndex'
 import { buildTxtSummaryPrompt } from '../../services/ai/summarizers'
 import { buildTxtEditSuggestionPrompt, parseSuggestions } from '../../services/ai/editSuggestions'
 import { createPromptSession, prompt as aiPrompt, destroySession } from '../../services/ai/promptService'
@@ -78,6 +79,7 @@ export function TxtViewer() {
   const { aiEnabled } = useAISettings()
   const { isAIReady } = useAI()
   const aiSidebar = useAISidebar()
+  const searchIndex = useSearchIndex(fileData, fileType)
   const [summary, setSummary] = useState(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [summaryError, setSummaryError] = useState(null)
@@ -172,15 +174,17 @@ export function TxtViewer() {
   const handleSearchResultClick = useCallback((result) => {
     if (result.lineIndex == null) return
 
-    // Switch to view mode so we have scrollable line elements
-    if (viewMode === 'edit') {
-      setViewMode(isMarkdown ? 'preview' : 'raw')
-    }
-
-    const scrollAndHighlight = () => {
-      // For highlighted code, target line-number elements; for plain text, target .txt-line elements
-      const lineNumberEl = document.querySelector(`.line-numbers .line-number:nth-child(${result.lineIndex + 1})`)
+    if (viewMode === 'edit' || (isMarkdown && viewMode === 'split')) {
+      // Scroll textarea to the target line
+      const textarea = editorRef.current
+      if (!textarea) return
+      const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 20
+      const scrollTop = result.lineIndex * lineHeight - textarea.clientHeight / 2
+      textarea.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' })
+    } else {
+      // In view/raw/preview modes, target the line elements
       const txtLineEl = document.querySelector(`.txt-content .txt-line:nth-child(${result.lineIndex + 1})`)
+      const lineNumberEl = document.querySelector(`.line-numbers .line-number:nth-child(${result.lineIndex + 1})`)
       const target = txtLineEl || lineNumberEl
       if (!target) return
       target.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -188,13 +192,6 @@ export function TxtViewer() {
       void target.offsetWidth
       target.classList.add('ai-search-highlight')
       setTimeout(() => target.classList.remove('ai-search-highlight'), 2000)
-    }
-
-    // Delay if switching view modes to let React render
-    if (viewMode === 'edit') {
-      setTimeout(scrollAndHighlight, 50)
-    } else {
-      scrollAndHighlight()
     }
   }, [viewMode, isMarkdown])
 
@@ -602,7 +599,7 @@ export function TxtViewer() {
             />
           )}
           {aiSidebar.activeTab === 'search' && (
-            <SemanticSearchView fileData={fileData} fileType={fileType} onResultClick={handleSearchResultClick} />
+            <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
           )}
           {aiSidebar.activeTab === 'suggestions' && (
             <SuggestionView

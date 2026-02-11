@@ -108,13 +108,13 @@ function chunkText(text) {
   })
 }
 
-export async function buildSearchIndex(chunks) {
+export async function buildSearchIndex(chunks, onProgress) {
   if (!chunks || chunks.length === 0) {
     return { index: null, error: 'No content to index' }
   }
 
   const texts = chunks.map(c => c.text)
-  const { embeddings, error } = await embedBatch(texts)
+  const { embeddings, error } = await embedBatch(texts, onProgress)
 
   if (error) {
     return { index: null, error }
