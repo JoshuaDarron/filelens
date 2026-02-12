@@ -95,7 +95,7 @@ function buildBreadcrumbsFromUrl(dirUrl) {
 export function FileBrowser({ onFileSelect, dirUrl }) {
   const toast = useToast()
   const { aiEnabled } = useAISettings()
-  const { isAIReady } = useAI()
+  const { isAIReady, promptStatus } = useAI()
   const sidebar = useAISidebar()
   const [summary, setSummary] = useState(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
@@ -772,6 +772,7 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
         onClose={sidebar.closeSidebar}
         activeTab={sidebar.activeTab}
         onTabChange={sidebar.setActiveTab}
+        promptReady={promptStatus.status === 'ready'}
       >
         {sidebar.activeTab === 'summary' && (
           <SummaryView

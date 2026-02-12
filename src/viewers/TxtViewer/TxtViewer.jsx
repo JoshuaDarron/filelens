@@ -77,7 +77,7 @@ export function TxtViewer() {
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
   const { aiEnabled } = useAISettings()
-  const { isAIReady } = useAI()
+  const { isAIReady, promptStatus } = useAI()
   const aiSidebar = useAISidebar()
   const searchIndex = useSearchIndex(fileData, fileType)
   const [summary, setSummary] = useState(null)
@@ -589,6 +589,7 @@ export function TxtViewer() {
           onClose={aiSidebar.closeSidebar}
           activeTab={aiSidebar.activeTab}
           onTabChange={aiSidebar.setActiveTab}
+          promptReady={promptStatus.status === 'ready'}
         >
           {aiSidebar.activeTab === 'summary' && (
             <SummaryView

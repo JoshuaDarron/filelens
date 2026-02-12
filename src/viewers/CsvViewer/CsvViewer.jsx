@@ -36,7 +36,7 @@ export function CsvViewer() {
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
   const { aiEnabled } = useAISettings()
-  const { isAIReady } = useAI()
+  const { isAIReady, promptStatus } = useAI()
   const sidebar = useAISidebar()
   const searchIndex = useSearchIndex(fileData, 'csv')
   const [summary, setSummary] = useState(null)
@@ -436,6 +436,7 @@ export function CsvViewer() {
           onClose={sidebar.closeSidebar}
           activeTab={sidebar.activeTab}
           onTabChange={sidebar.setActiveTab}
+          promptReady={promptStatus.status === 'ready'}
         >
           {sidebar.activeTab === 'summary' && (
             <SummaryView

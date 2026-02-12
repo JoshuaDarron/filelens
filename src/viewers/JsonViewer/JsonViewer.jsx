@@ -111,7 +111,7 @@ export function JsonViewer() {
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
   const { aiEnabled } = useAISettings()
-  const { isAIReady } = useAI()
+  const { isAIReady, promptStatus } = useAI()
   const sidebar = useAISidebar()
   const searchIndex = useSearchIndex(fileData, 'json')
   const [summary, setSummary] = useState(null)
@@ -465,6 +465,7 @@ export function JsonViewer() {
           onClose={sidebar.closeSidebar}
           activeTab={sidebar.activeTab}
           onTabChange={sidebar.setActiveTab}
+          promptReady={promptStatus.status === 'ready'}
         >
           {sidebar.activeTab === 'summary' && (
             <SummaryView
