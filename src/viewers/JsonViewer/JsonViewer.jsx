@@ -6,15 +6,11 @@ import { Header } from '../../components/Header/Header'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile } from '../../utils/fileHelpers'
 import { AISidebar } from '../../components/AISidebar/AISidebar'
-import { SummaryView } from '../../components/AISidebar/SummaryView'
 import { SemanticSearchView } from '../../components/AISidebar/SemanticSearchView'
-import { SuggestionView } from '../../components/AISidebar/SuggestionView'
 import { useAISidebar } from '../../hooks/useAISidebar'
 import { useAI } from '../../hooks/useAI'
 import { useAISettings } from '../../hooks/useAISettings'
 import { useSearchIndex } from '../../hooks/useSearchIndex'
-import { buildJsonSummaryPrompt } from '../../services/ai/summarizers'
-import { buildJsonEditSuggestionPrompt, parseSuggestions } from '../../services/ai/editSuggestions'
 
 function JsonNode({ data, path = '', level = 0, collapsed = false }) {
   const [isCollapsed, setIsCollapsed] = useState(collapsed && level > 2)
@@ -110,80 +106,17 @@ export function JsonViewer() {
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
   const { aiEnabled } = useAISettings()
-  const { isAIReady, promptStatus, promptLLM } = useAI()
+  const { isAIReady } = useAI()
   const sidebar = useAISidebar()
   const searchIndex = useSearchIndex(fileData, 'json')
-  const [summary, setSummary] = useState(null)
-  const [summaryLoading, setSummaryLoading] = useState(false)
-  const [summaryError, setSummaryError] = useState(null)
-  const [suggestions, setSuggestions] = useState(null)
-  const [suggestionsLoading, setSuggestionsLoading] = useState(false)
-  const [suggestionsError, setSuggestionsError] = useState(null)
   const [viewMode, setViewMode] = useState('tree') // 'tree' or 'raw'
   const [rawText, setRawText] = useState('')
   const rawPreRef = useRef(null)
   const rawLines = useMemo(() => rawText ? rawText.split('\n') : [], [rawText])
 
-  const generateSuggestions = useCallback(async () => {
-    if (suggestions || suggestionsLoading) return
-
-    const promptText = buildJsonEditSuggestionPrompt(fileData)
-    if (!promptText) return
-
-    setSuggestionsLoading(true)
-    setSuggestionsError(null)
-
-    const { result, error } = await promptLLM(
-      'You are a data quality analyst. Suggest specific, actionable edits. Follow the exact output format requested.',
-      promptText
-    )
-
-    setSuggestionsLoading(false)
-    if (error) {
-      setSuggestionsError(error)
-    } else {
-      setSuggestions(parseSuggestions(result))
-    }
-  }, [suggestions, suggestionsLoading, fileData, promptLLM])
-
-  const handleDismissSuggestion = useCallback((index) => {
-    setSuggestions(prev => prev?.filter((_, i) => i !== index) || null)
-  }, [])
-
-  useEffect(() => {
-    if (sidebar.activeTab === 'suggestions' && sidebar.isSidebarOpen && !suggestions && !suggestionsLoading) {
-      generateSuggestions()
-    }
-  }, [sidebar.activeTab, sidebar.isSidebarOpen]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleAnalyze = useCallback(async () => {
+  const handleAnalyze = useCallback(() => {
     sidebar.toggleSidebar()
-    if (summary || summaryLoading) return
-
-    const promptText = buildJsonSummaryPrompt(fileData)
-    if (!promptText) return
-
-    setSummaryLoading(true)
-    setSummaryError(null)
-
-    const { result, error } = await promptLLM(
-      'You are a data analyst. Provide concise, structured analysis of JSON data. Use plain text, not markdown.',
-      promptText
-    )
-
-    setSummaryLoading(false)
-    if (error) {
-      setSummaryError(error)
-    } else {
-      setSummary(result)
-    }
-  }, [sidebar, summary, summaryLoading, fileData, promptLLM])
-
-  const handleRetrySummary = useCallback(() => {
-    setSummary(null)
-    setSummaryError(null)
-    handleAnalyze()
-  }, [handleAnalyze])
+  }, [sidebar])
 
   const handleSearchResultClick = useCallback((result) => {
     if (!result.text || !rawText) return
@@ -446,30 +379,8 @@ export function JsonViewer() {
         <AISidebar
           isOpen={sidebar.isSidebarOpen}
           onClose={sidebar.closeSidebar}
-          activeTab={sidebar.activeTab}
-          onTabChange={sidebar.setActiveTab}
-          promptReady={promptStatus.status === 'ready' || promptStatus.status === 'needs-load'}
         >
-          {sidebar.activeTab === 'summary' && (
-            <SummaryView
-              summary={summary}
-              isLoading={summaryLoading}
-              error={summaryError}
-              onRetry={handleRetrySummary}
-            />
-          )}
-          {sidebar.activeTab === 'search' && (
-            <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
-          )}
-          {sidebar.activeTab === 'suggestions' && (
-            <SuggestionView
-              suggestions={suggestions}
-              isLoading={suggestionsLoading}
-              error={suggestionsError}
-              onRetry={generateSuggestions}
-              onDismiss={handleDismissSuggestion}
-            />
-          )}
+          <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
         </AISidebar>
       </div>
     </>

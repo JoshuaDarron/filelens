@@ -4,12 +4,10 @@ import { Header } from '../../components/Header/Header'
 import { Breadcrumb } from '../../components/Breadcrumb/Breadcrumb'
 import { formatFileSize } from '../../utils/fileHelpers'
 import { AISidebar } from '../../components/AISidebar/AISidebar'
-import { SummaryView } from '../../components/AISidebar/SummaryView'
 import { DirectorySearchView } from '../../components/AISidebar/DirectorySearchView'
 import { useAISidebar } from '../../hooks/useAISidebar'
 import { useAI } from '../../hooks/useAI'
 import { useAISettings } from '../../hooks/useAISettings'
-import { buildDirectorySummaryPrompt } from '../../services/ai/summarizers'
 
 // Parse Chrome's directory listing HTML to extract file entries
 function parseDirectoryListing(html, baseUrl) {
@@ -94,11 +92,8 @@ function buildBreadcrumbsFromUrl(dirUrl) {
 export function FileBrowser({ onFileSelect, dirUrl }) {
   const toast = useToast()
   const { aiEnabled } = useAISettings()
-  const { isAIReady, promptStatus, promptLLM } = useAI()
+  const { isAIReady } = useAI()
   const sidebar = useAISidebar()
-  const [summary, setSummary] = useState(null)
-  const [summaryLoading, setSummaryLoading] = useState(false)
-  const [summaryError, setSummaryError] = useState(null)
   const [files, setFiles] = useState([])
   const [currentPath, setCurrentPath] = useState([])
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('fileBrowser-viewMode') || 'list') // 'list' or 'grid'
@@ -544,40 +539,9 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
   // Clear search when navigating
   const clearSearch = () => setSearchQuery('')
 
-  const handleAnalyze = useCallback(async () => {
+  const handleAnalyze = useCallback(() => {
     sidebar.toggleSidebar()
-    if (summary || summaryLoading) return
-
-    const promptText = buildDirectorySummaryPrompt(files)
-    if (!promptText) return
-
-    setSummaryLoading(true)
-    setSummaryError(null)
-
-    const { result, error } = await promptLLM(
-      'You are a file system analyst. Provide concise analysis of directory contents. Use plain text, not markdown.',
-      promptText
-    )
-
-    setSummaryLoading(false)
-    if (error) {
-      setSummaryError(error)
-    } else {
-      setSummary(result)
-    }
-  }, [sidebar, summary, summaryLoading, files, promptLLM])
-
-  const handleRetrySummary = useCallback(() => {
-    setSummary(null)
-    setSummaryError(null)
-    handleAnalyze()
-  }, [handleAnalyze])
-
-  // Reset summary when directory changes
-  useEffect(() => {
-    setSummary(null)
-    setSummaryError(null)
-  }, [directoryUrl, directoryHandle])
+  }, [sidebar])
 
   const showAnalyze = aiEnabled && isAIReady
 
@@ -761,21 +725,8 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
       <AISidebar
         isOpen={sidebar.isSidebarOpen}
         onClose={sidebar.closeSidebar}
-        activeTab={sidebar.activeTab}
-        onTabChange={sidebar.setActiveTab}
-        promptReady={promptStatus.status === 'ready' || promptStatus.status === 'needs-load'}
       >
-        {sidebar.activeTab === 'summary' && (
-          <SummaryView
-            summary={summary}
-            isLoading={summaryLoading}
-            error={summaryError}
-            onRetry={handleRetrySummary}
-          />
-        )}
-        {sidebar.activeTab === 'search' && (
-          <DirectorySearchView files={files} />
-        )}
+        <DirectorySearchView files={files} />
       </AISidebar>
       </div>
     </>

@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from 'react'
 export function useAISidebar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [sidebarContent, setSidebarContent] = useState(null)
-  const [activeTab, setActiveTab] = useState('summary')
+  const [activeTab, setActiveTab] = useState('search')
 
   const openSidebar = useCallback((content = null) => {
     if (content) setSidebarContent(content)

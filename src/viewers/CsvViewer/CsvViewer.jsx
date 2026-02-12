@@ -1,4 +1,4 @@
-import { useContext, useEffect, useCallback, useState } from 'react'
+import { useContext, useEffect, useCallback } from 'react'
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { usePagination } from '../../hooks/usePagination'
@@ -10,15 +10,11 @@ import { CsvTable } from './CsvTable'
 import { parseCSV, generateCSVContent, createDefaultCSV, validateCSVData } from '../../utils/csvParser'
 import { saveFile, downloadFile } from '../../utils/fileHelpers'
 import { AISidebar } from '../../components/AISidebar/AISidebar'
-import { SummaryView } from '../../components/AISidebar/SummaryView'
 import { SemanticSearchView } from '../../components/AISidebar/SemanticSearchView'
 import { useAISidebar } from '../../hooks/useAISidebar'
 import { useAI } from '../../hooks/useAI'
 import { useAISettings } from '../../hooks/useAISettings'
 import { useSearchIndex } from '../../hooks/useSearchIndex'
-import { SuggestionView } from '../../components/AISidebar/SuggestionView'
-import { buildCsvSummaryPrompt } from '../../services/ai/summarizers'
-import { buildCsvEditSuggestionPrompt, parseSuggestions } from '../../services/ai/editSuggestions'
 
 export function CsvViewer() {
   const {
@@ -35,77 +31,13 @@ export function CsvViewer() {
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
   const { aiEnabled } = useAISettings()
-  const { isAIReady, promptStatus, promptLLM } = useAI()
+  const { isAIReady } = useAI()
   const sidebar = useAISidebar()
   const searchIndex = useSearchIndex(fileData, 'csv')
-  const [summary, setSummary] = useState(null)
-  const [summaryLoading, setSummaryLoading] = useState(false)
-  const [summaryError, setSummaryError] = useState(null)
-  const [suggestions, setSuggestions] = useState(null)
-  const [suggestionsLoading, setSuggestionsLoading] = useState(false)
-  const [suggestionsError, setSuggestionsError] = useState(null)
 
-  const generateSuggestions = useCallback(async () => {
-    if (suggestions || suggestionsLoading) return
-
-    const promptText = buildCsvEditSuggestionPrompt(fileData)
-    if (!promptText) return
-
-    setSuggestionsLoading(true)
-    setSuggestionsError(null)
-
-    const { result, error } = await promptLLM(
-      'You are a data quality analyst. Suggest specific, actionable edits. Follow the exact output format requested.',
-      promptText
-    )
-
-    setSuggestionsLoading(false)
-    if (error) {
-      setSuggestionsError(error)
-    } else {
-      setSuggestions(parseSuggestions(result))
-    }
-  }, [suggestions, suggestionsLoading, fileData, promptLLM])
-
-  const handleDismissSuggestion = useCallback((index) => {
-    setSuggestions(prev => prev?.filter((_, i) => i !== index) || null)
-  }, [])
-
-  // Auto-generate suggestions when tab is first visited
-  useEffect(() => {
-    if (sidebar.activeTab === 'suggestions' && sidebar.isSidebarOpen && !suggestions && !suggestionsLoading) {
-      generateSuggestions()
-    }
-  }, [sidebar.activeTab, sidebar.isSidebarOpen]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleAnalyze = useCallback(async () => {
+  const handleAnalyze = useCallback(() => {
     sidebar.toggleSidebar()
-    if (summary || summaryLoading) return
-
-    const promptText = buildCsvSummaryPrompt(fileData)
-    if (!promptText) return
-
-    setSummaryLoading(true)
-    setSummaryError(null)
-
-    const { result, error } = await promptLLM(
-      'You are a data analyst. Provide concise, structured analysis of data files. Use plain text, not markdown.',
-      promptText
-    )
-
-    setSummaryLoading(false)
-    if (error) {
-      setSummaryError(error)
-    } else {
-      setSummary(result)
-    }
-  }, [sidebar, summary, summaryLoading, fileData, promptLLM])
-
-  const handleRetrySummary = useCallback(() => {
-    setSummary(null)
-    setSummaryError(null)
-    handleAnalyze()
-  }, [handleAnalyze])
+  }, [sidebar])
 
   const totalDataRows = fileData ? fileData.length - 1 : 0
   const pagination = usePagination(totalDataRows)
@@ -417,30 +349,8 @@ export function CsvViewer() {
         <AISidebar
           isOpen={sidebar.isSidebarOpen}
           onClose={sidebar.closeSidebar}
-          activeTab={sidebar.activeTab}
-          onTabChange={sidebar.setActiveTab}
-          promptReady={promptStatus.status === 'ready' || promptStatus.status === 'needs-load'}
         >
-          {sidebar.activeTab === 'summary' && (
-            <SummaryView
-              summary={summary}
-              isLoading={summaryLoading}
-              error={summaryError}
-              onRetry={handleRetrySummary}
-            />
-          )}
-          {sidebar.activeTab === 'search' && (
-            <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
-          )}
-          {sidebar.activeTab === 'suggestions' && (
-            <SuggestionView
-              suggestions={suggestions}
-              isLoading={suggestionsLoading}
-              error={suggestionsError}
-              onRetry={generateSuggestions}
-              onDismiss={handleDismissSuggestion}
-            />
-          )}
+          <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
         </AISidebar>
       </div>
     </>

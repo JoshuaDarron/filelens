@@ -9,15 +9,11 @@ import { Header } from '../../components/Header/Header'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile, saveFile } from '../../utils/fileHelpers'
 import { AISidebar } from '../../components/AISidebar/AISidebar'
-import { SummaryView } from '../../components/AISidebar/SummaryView'
 import { SemanticSearchView } from '../../components/AISidebar/SemanticSearchView'
-import { SuggestionView } from '../../components/AISidebar/SuggestionView'
 import { useAISidebar } from '../../hooks/useAISidebar'
 import { useAI } from '../../hooks/useAI'
 import { useAISettings } from '../../hooks/useAISettings'
 import { useSearchIndex } from '../../hooks/useSearchIndex'
-import { buildTxtSummaryPrompt } from '../../services/ai/summarizers'
-import { buildTxtEditSuggestionPrompt, parseSuggestions } from '../../services/ai/editSuggestions'
 
 const EXT_TO_LANG = {
   jsx: 'javascript',
@@ -76,77 +72,14 @@ export function TxtViewer() {
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
   const { aiEnabled } = useAISettings()
-  const { isAIReady, promptStatus, promptLLM } = useAI()
+  const { isAIReady } = useAI()
   const aiSidebar = useAISidebar()
   const searchIndex = useSearchIndex(fileData, fileType)
-  const [summary, setSummary] = useState(null)
-  const [summaryLoading, setSummaryLoading] = useState(false)
-  const [summaryError, setSummaryError] = useState(null)
-  const [suggestions, setSuggestions] = useState(null)
-  const [suggestionsLoading, setSuggestionsLoading] = useState(false)
-  const [suggestionsError, setSuggestionsError] = useState(null)
   const [viewMode, setViewMode] = useState(null)
 
-  const generateSuggestions = useCallback(async () => {
-    if (suggestions || suggestionsLoading) return
-
-    const promptText = buildTxtEditSuggestionPrompt(fileData, fileType)
-    if (!promptText) return
-
-    setSuggestionsLoading(true)
-    setSuggestionsError(null)
-
-    const { result, error } = await promptLLM(
-      'You are a writing assistant. Suggest specific, actionable edits. Follow the exact output format requested.',
-      promptText
-    )
-
-    setSuggestionsLoading(false)
-    if (error) {
-      setSuggestionsError(error)
-    } else {
-      setSuggestions(parseSuggestions(result))
-    }
-  }, [suggestions, suggestionsLoading, fileData, fileType, promptLLM])
-
-  const handleDismissSuggestion = useCallback((index) => {
-    setSuggestions(prev => prev?.filter((_, i) => i !== index) || null)
-  }, [])
-
-  useEffect(() => {
-    if (aiSidebar.activeTab === 'suggestions' && aiSidebar.isSidebarOpen && !suggestions && !suggestionsLoading) {
-      generateSuggestions()
-    }
-  }, [aiSidebar.activeTab, aiSidebar.isSidebarOpen]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleAnalyze = useCallback(async () => {
+  const handleAnalyze = useCallback(() => {
     aiSidebar.toggleSidebar()
-    if (summary || summaryLoading) return
-
-    const promptText = buildTxtSummaryPrompt(fileData, fileType)
-    if (!promptText) return
-
-    setSummaryLoading(true)
-    setSummaryError(null)
-
-    const { result, error } = await promptLLM(
-      'You are a document analyst. Provide concise, structured analysis of text content. Use plain text, not markdown.',
-      promptText
-    )
-
-    setSummaryLoading(false)
-    if (error) {
-      setSummaryError(error)
-    } else {
-      setSummary(result)
-    }
-  }, [aiSidebar, summary, summaryLoading, fileData, fileType, promptLLM])
-
-  const handleRetrySummary = useCallback(() => {
-    setSummary(null)
-    setSummaryError(null)
-    handleAnalyze()
-  }, [handleAnalyze])
+  }, [aiSidebar])
 
   // null until file loads; 'edit' | 'split' | 'preview' for md, 'raw' for txt
   const [wordWrap, setWordWrap] = useState(true)
@@ -570,30 +503,8 @@ export function TxtViewer() {
         <AISidebar
           isOpen={aiSidebar.isSidebarOpen}
           onClose={aiSidebar.closeSidebar}
-          activeTab={aiSidebar.activeTab}
-          onTabChange={aiSidebar.setActiveTab}
-          promptReady={promptStatus.status === 'ready' || promptStatus.status === 'needs-load'}
         >
-          {aiSidebar.activeTab === 'summary' && (
-            <SummaryView
-              summary={summary}
-              isLoading={summaryLoading}
-              error={summaryError}
-              onRetry={handleRetrySummary}
-            />
-          )}
-          {aiSidebar.activeTab === 'search' && (
-            <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
-          )}
-          {aiSidebar.activeTab === 'suggestions' && (
-            <SuggestionView
-              suggestions={suggestions}
-              isLoading={suggestionsLoading}
-              error={suggestionsError}
-              onRetry={generateSuggestions}
-              onDismiss={handleDismissSuggestion}
-            />
-          )}
+          <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
         </AISidebar>
       </div>
     </>
