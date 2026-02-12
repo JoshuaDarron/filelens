@@ -1,4 +1,4 @@
-import { createContext, useState, useCallback, useEffect } from 'react'
+import { createContext, useState, useCallback, useEffect, useMemo } from 'react'
 import { useAISettings } from '../hooks/useAISettings'
 import { checkWebGPUAvailability, loadEngine, prompt, unloadEngine } from '../services/ai/webllmService'
 import { checkEmbeddingAvailability, loadEmbeddingModel as loadModel, clearModelCache } from '../services/ai/embeddingService'
@@ -16,30 +16,23 @@ export function AIProvider({ children }) {
   const [promptStatus, setPromptStatus] = useState(initialStatus)
   const [embeddingStatus, setEmbeddingStatus] = useState(initialStatus)
 
-  const isAIReady = aiEnabled && (promptStatus.status === 'ready' || embeddingStatus.status === 'ready')
+  const promptUsable = promptStatus.status === 'ready' || promptStatus.status === 'needs-load'
+  const isAIReady = aiEnabled && (promptUsable || embeddingStatus.status === 'ready')
 
   const detectCapabilities = useCallback(async () => {
     setPromptStatus({ status: 'checking', message: 'Checking availability...' })
     setEmbeddingStatus({ status: 'checking', message: 'Checking availability...' })
 
-    const promptResult = await checkWebGPUAvailability(selectedModel)
+    // Run both checks in parallel — neither depends on the other
+    const [promptResult, embeddingResult] = await Promise.all([
+      checkWebGPUAvailability(selectedModel),
+      checkEmbeddingAvailability(),
+    ])
 
-    // Auto-load the LLM from cache so it's ready immediately after page reload
-    if (promptResult.status === 'needs-load') {
-      setPromptStatus({ status: 'loading', message: 'Loading model...' })
-      const loadResult = await loadEngine(selectedModel)
-      if (loadResult.success) {
-        setPromptStatus({ status: 'ready', message: 'Available' })
-      } else {
-        setPromptStatus({ status: 'error', message: loadResult.error })
-      }
-    } else {
-      setPromptStatus({ status: promptResult.status, message: promptResult.message })
-    }
+    // LLM: don't auto-load (engine init is heavy); let the user trigger it or load on first prompt
+    setPromptStatus({ status: promptResult.status, message: promptResult.message })
 
-    const embeddingResult = await checkEmbeddingAvailability()
-
-    // Auto-load the embedding model from cache so it's ready immediately after page reload
+    // Embedding: small model, safe to auto-load from cache
     if (embeddingResult.status === 'needs-load') {
       setEmbeddingStatus({ status: 'loading', message: 'Loading model...' })
       const loadResult = await loadModel()
@@ -89,8 +82,20 @@ export function AIProvider({ children }) {
   }, [])
 
   const promptLLM = useCallback(async (systemPrompt, userMessage) => {
+    // Lazy-load the engine on first prompt if it's cached but not loaded yet
+    if (promptStatus.status === 'needs-load' || promptStatus.status === 'needs-download') {
+      setPromptStatus({ status: 'loading', message: 'Loading model...' })
+      const loadResult = await loadEngine(selectedModel, (progress, text) => {
+        setPromptStatus({ status: 'loading', message: text || `Loading... ${Math.round(progress * 100)}%` })
+      })
+      if (!loadResult.success) {
+        setPromptStatus({ status: 'error', message: loadResult.error })
+        return { result: null, error: loadResult.error }
+      }
+      setPromptStatus({ status: 'ready', message: 'Available' })
+    }
     return prompt(systemPrompt, userMessage)
-  }, [])
+  }, [promptStatus.status, selectedModel])
 
   useEffect(() => {
     if (aiEnabled) {
@@ -103,17 +108,19 @@ export function AIProvider({ children }) {
     }
   }, [aiEnabled, detectCapabilities])
 
+  const contextValue = useMemo(() => ({
+    promptStatus,
+    embeddingStatus,
+    isAIReady,
+    detectCapabilities,
+    downloadPromptModel: handleDownloadPromptModel,
+    loadPromptModel: handleLoadPromptModel,
+    loadEmbeddingModel: handleLoadEmbeddingModel,
+    promptLLM,
+  }), [promptStatus, embeddingStatus, isAIReady, detectCapabilities, handleDownloadPromptModel, handleLoadPromptModel, handleLoadEmbeddingModel, promptLLM])
+
   return (
-    <AIContext.Provider value={{
-      promptStatus,
-      embeddingStatus,
-      isAIReady,
-      detectCapabilities,
-      downloadPromptModel: handleDownloadPromptModel,
-      loadPromptModel: handleLoadPromptModel,
-      loadEmbeddingModel: handleLoadEmbeddingModel,
-      promptLLM,
-    }}>
+    <AIContext.Provider value={contextValue}>
       {children}
     </AIContext.Provider>
   )

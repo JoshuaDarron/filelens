@@ -572,7 +572,7 @@ export function TxtViewer() {
           onClose={aiSidebar.closeSidebar}
           activeTab={aiSidebar.activeTab}
           onTabChange={aiSidebar.setActiveTab}
-          promptReady={promptStatus.status === 'ready'}
+          promptReady={promptStatus.status === 'ready' || promptStatus.status === 'needs-load'}
         >
           {aiSidebar.activeTab === 'summary' && (
             <SummaryView

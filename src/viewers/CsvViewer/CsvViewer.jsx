@@ -419,7 +419,7 @@ export function CsvViewer() {
           onClose={sidebar.closeSidebar}
           activeTab={sidebar.activeTab}
           onTabChange={sidebar.setActiveTab}
-          promptReady={promptStatus.status === 'ready'}
+          promptReady={promptStatus.status === 'ready' || promptStatus.status === 'needs-load'}
         >
           {sidebar.activeTab === 'summary' && (
             <SummaryView
