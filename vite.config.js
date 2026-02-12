@@ -93,7 +93,7 @@ export default defineConfig({
   plugins: [react(), copyExtensionAssets()],
   base: './',
   optimizeDeps: {
-    exclude: ['@xenova/transformers']
+    exclude: ['@xenova/transformers', '@mlc-ai/web-llm']
   },
   test: {
     globals: true,

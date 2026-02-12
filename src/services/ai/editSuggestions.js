@@ -1,4 +1,4 @@
-import { estimateTokens } from './promptService'
+import { estimateTokens } from './webllmService'
 
 const MAX_TOKENS = 3500
 

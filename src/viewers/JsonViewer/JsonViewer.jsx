@@ -15,7 +15,6 @@ import { useAISettings } from '../../hooks/useAISettings'
 import { useSearchIndex } from '../../hooks/useSearchIndex'
 import { buildJsonSummaryPrompt } from '../../services/ai/summarizers'
 import { buildJsonEditSuggestionPrompt, parseSuggestions } from '../../services/ai/editSuggestions'
-import { createPromptSession, prompt as aiPrompt, destroySession } from '../../services/ai/promptService'
 
 function JsonNode({ data, path = '', level = 0, collapsed = false }) {
   const [isCollapsed, setIsCollapsed] = useState(collapsed && level > 2)
@@ -111,7 +110,7 @@ export function JsonViewer() {
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
   const { aiEnabled } = useAISettings()
-  const { isAIReady, promptStatus } = useAI()
+  const { isAIReady, promptStatus, promptLLM } = useAI()
   const sidebar = useAISidebar()
   const searchIndex = useSearchIndex(fileData, 'json')
   const [summary, setSummary] = useState(null)
@@ -134,26 +133,18 @@ export function JsonViewer() {
     setSuggestionsLoading(true)
     setSuggestionsError(null)
 
-    const { session, error: sessionError } = await createPromptSession({
-      systemPrompt: 'You are a data quality analyst. Suggest specific, actionable edits. Follow the exact output format requested.',
-    })
-
-    if (sessionError) {
-      setSuggestionsLoading(false)
-      setSuggestionsError(sessionError)
-      return
-    }
-
-    const { result, error: promptError } = await aiPrompt(promptText, session)
-    destroySession(session)
+    const { result, error } = await promptLLM(
+      'You are a data quality analyst. Suggest specific, actionable edits. Follow the exact output format requested.',
+      promptText
+    )
 
     setSuggestionsLoading(false)
-    if (promptError) {
-      setSuggestionsError(promptError)
+    if (error) {
+      setSuggestionsError(error)
     } else {
       setSuggestions(parseSuggestions(result))
     }
-  }, [suggestions, suggestionsLoading, fileData])
+  }, [suggestions, suggestionsLoading, fileData, promptLLM])
 
   const handleDismissSuggestion = useCallback((index) => {
     setSuggestions(prev => prev?.filter((_, i) => i !== index) || null)
@@ -175,26 +166,18 @@ export function JsonViewer() {
     setSummaryLoading(true)
     setSummaryError(null)
 
-    const { session, error: sessionError } = await createPromptSession({
-      systemPrompt: 'You are a data analyst. Provide concise, structured analysis of JSON data. Use plain text, not markdown.',
-    })
-
-    if (sessionError) {
-      setSummaryLoading(false)
-      setSummaryError(sessionError)
-      return
-    }
-
-    const { result, error: promptError } = await aiPrompt(promptText, session)
-    destroySession(session)
+    const { result, error } = await promptLLM(
+      'You are a data analyst. Provide concise, structured analysis of JSON data. Use plain text, not markdown.',
+      promptText
+    )
 
     setSummaryLoading(false)
-    if (promptError) {
-      setSummaryError(promptError)
+    if (error) {
+      setSummaryError(error)
     } else {
       setSummary(result)
     }
-  }, [sidebar, summary, summaryLoading, fileData])
+  }, [sidebar, summary, summaryLoading, fileData, promptLLM])
 
   const handleRetrySummary = useCallback(() => {
     setSummary(null)

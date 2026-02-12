@@ -4,6 +4,7 @@ import { useToast } from '../../hooks/useToast'
 import { useAISettings } from '../../hooks/useAISettings'
 import { useAI } from '../../hooks/useAI'
 import { clearModelCache } from '../../services/ai/embeddingService'
+import { getAvailableModels, clearWebLLMCache } from '../../services/ai/webllmService'
 import { version } from '../../../package.json'
 import './Settings.css'
 
@@ -36,9 +37,11 @@ function formatBytes(bytes) {
 export function Settings() {
   const { themePreference, setTheme } = useTheme()
   const toast = useToast()
-  const { aiEnabled, setAIEnabled } = useAISettings()
-  const { promptStatus, embeddingStatus, downloadPromptModel, loadEmbeddingModel, detectCapabilities } = useAI()
+  const { aiEnabled, setAIEnabled, selectedModel, setSelectedModel } = useAISettings()
+  const { promptStatus, embeddingStatus, downloadPromptModel, loadPromptModel, loadEmbeddingModel, detectCapabilities } = useAI()
   const [storageBytes, setStorageBytes] = useState(getStorageUsage)
+
+  const modelOptions = getAvailableModels()
 
   const handleBack = () => {
     if (window.history.length > 1) {
@@ -120,11 +123,11 @@ export function Settings() {
               <div className="settings-divider"></div>
               <div className="settings-option">
                 <div className="settings-option-info">
-                  <span className="settings-option-label">Chrome AI (Summarization)</span>
+                  <span className="settings-option-label">Language Model (Summarization)</span>
                   <span className="settings-option-desc">
                     {promptStatus.status === 'unavailable' || promptStatus.status === 'error'
                       ? promptStatus.message
-                      : 'Powers summaries and edit suggestions'}
+                      : 'Powers summaries and edit suggestions via WebLLM'}
                   </span>
                 </div>
                 <div className="status-action-group">
@@ -133,18 +136,43 @@ export function Settings() {
                       <i className="bi bi-download"></i> Download
                     </button>
                   )}
-                  {promptStatus.status === 'downloading' ? (
+                  {promptStatus.status === 'needs-load' && (
+                    <button className="btn btn-primary btn-sm" onClick={loadPromptModel}>
+                      <i className="bi bi-arrow-repeat"></i> Load
+                    </button>
+                  )}
+                  {(promptStatus.status === 'downloading' || promptStatus.status === 'loading') ? (
                     <span className="status-badge status-needs-download">{promptStatus.message}</span>
                   ) : (
-                    <span className={`status-badge status-${promptStatus.status === 'ready' ? 'ready' : promptStatus.status === 'needs-download' ? 'needs-download' : promptStatus.status === 'error' ? 'error' : 'unavailable'}`}>
+                    <span className={`status-badge status-${promptStatus.status === 'ready' ? 'ready' : promptStatus.status === 'needs-download' ? 'needs-download' : promptStatus.status === 'needs-load' ? 'needs-download' : promptStatus.status === 'error' ? 'error' : 'unavailable'}`}>
                       {promptStatus.status === 'ready' ? 'Available'
                         : promptStatus.status === 'checking' ? 'Checking...'
                         : promptStatus.status === 'needs-download' ? 'Needs download'
+                        : promptStatus.status === 'needs-load' ? 'Cached'
                         : promptStatus.status === 'error' ? 'Error'
                         : 'Not available'}
                     </span>
                   )}
                 </div>
+              </div>
+              <div className="settings-divider"></div>
+              <div className="settings-option">
+                <div className="settings-option-info">
+                  <span className="settings-option-label">Model</span>
+                  <span className="settings-option-desc">Choose which language model to use</span>
+                </div>
+                <select
+                  className="model-select"
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  disabled={promptStatus.status === 'downloading' || promptStatus.status === 'loading'}
+                >
+                  {modelOptions.map(m => (
+                    <option key={m.id} value={m.id}>
+                      {m.label} ({m.size})
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="settings-divider"></div>
               <div className="settings-option">
@@ -223,12 +251,13 @@ export function Settings() {
                 <div className="settings-option-info">
                   <span className="settings-option-label">Clear AI model cache</span>
                   <span className="settings-option-desc">
-                    Remove downloaded embedding model (~23 MB) from IndexedDB
+                    Remove downloaded models from browser cache
                   </span>
                 </div>
                 <button className="btn btn-danger btn-sm" onClick={async () => {
-                  const result = await clearModelCache()
-                  if (result.success) {
+                  const embeddingResult = await clearModelCache()
+                  const llmResult = await clearWebLLMCache()
+                  if (embeddingResult.success && llmResult.success) {
                     toast.success('AI model cache cleared')
                     detectCapabilities()
                   } else {

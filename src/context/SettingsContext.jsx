@@ -5,6 +5,7 @@ const STORAGE_KEY = 'filelens-settings'
 const defaultSettings = {
   theme: 'system',
   aiEnabled: false,
+  selectedModel: 'SmolLM2-1.7B-Instruct-q4f16_1-MLC',
 }
 
 function loadSettings() {

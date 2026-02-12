@@ -10,7 +10,6 @@ import { useAISidebar } from '../../hooks/useAISidebar'
 import { useAI } from '../../hooks/useAI'
 import { useAISettings } from '../../hooks/useAISettings'
 import { buildDirectorySummaryPrompt } from '../../services/ai/summarizers'
-import { createPromptSession, prompt as aiPrompt, destroySession } from '../../services/ai/promptService'
 
 // Parse Chrome's directory listing HTML to extract file entries
 function parseDirectoryListing(html, baseUrl) {
@@ -95,7 +94,7 @@ function buildBreadcrumbsFromUrl(dirUrl) {
 export function FileBrowser({ onFileSelect, dirUrl }) {
   const toast = useToast()
   const { aiEnabled } = useAISettings()
-  const { isAIReady, promptStatus } = useAI()
+  const { isAIReady, promptStatus, promptLLM } = useAI()
   const sidebar = useAISidebar()
   const [summary, setSummary] = useState(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
@@ -555,26 +554,18 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
     setSummaryLoading(true)
     setSummaryError(null)
 
-    const { session, error: sessionError } = await createPromptSession({
-      systemPrompt: 'You are a file system analyst. Provide concise analysis of directory contents. Use plain text, not markdown.',
-    })
-
-    if (sessionError) {
-      setSummaryLoading(false)
-      setSummaryError(sessionError)
-      return
-    }
-
-    const { result, error: promptError } = await aiPrompt(promptText, session)
-    destroySession(session)
+    const { result, error } = await promptLLM(
+      'You are a file system analyst. Provide concise analysis of directory contents. Use plain text, not markdown.',
+      promptText
+    )
 
     setSummaryLoading(false)
-    if (promptError) {
-      setSummaryError(promptError)
+    if (error) {
+      setSummaryError(error)
     } else {
       setSummary(result)
     }
-  }, [sidebar, summary, summaryLoading, files])
+  }, [sidebar, summary, summaryLoading, files, promptLLM])
 
   const handleRetrySummary = useCallback(() => {
     setSummary(null)

@@ -8,8 +8,14 @@ export function useAISettings() {
     updateSetting('aiEnabled', enabled)
   }, [updateSetting])
 
+  const setSelectedModel = useCallback((modelId) => {
+    updateSetting('selectedModel', modelId)
+  }, [updateSetting])
+
   return {
     aiEnabled: settings.aiEnabled,
     setAIEnabled,
+    selectedModel: settings.selectedModel,
+    setSelectedModel,
   }
 }

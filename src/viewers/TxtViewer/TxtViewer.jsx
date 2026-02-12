@@ -18,7 +18,6 @@ import { useAISettings } from '../../hooks/useAISettings'
 import { useSearchIndex } from '../../hooks/useSearchIndex'
 import { buildTxtSummaryPrompt } from '../../services/ai/summarizers'
 import { buildTxtEditSuggestionPrompt, parseSuggestions } from '../../services/ai/editSuggestions'
-import { createPromptSession, prompt as aiPrompt, destroySession } from '../../services/ai/promptService'
 
 const EXT_TO_LANG = {
   jsx: 'javascript',
@@ -77,7 +76,7 @@ export function TxtViewer() {
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
   const { aiEnabled } = useAISettings()
-  const { isAIReady, promptStatus } = useAI()
+  const { isAIReady, promptStatus, promptLLM } = useAI()
   const aiSidebar = useAISidebar()
   const searchIndex = useSearchIndex(fileData, fileType)
   const [summary, setSummary] = useState(null)
@@ -97,26 +96,18 @@ export function TxtViewer() {
     setSuggestionsLoading(true)
     setSuggestionsError(null)
 
-    const { session, error: sessionError } = await createPromptSession({
-      systemPrompt: 'You are a writing assistant. Suggest specific, actionable edits. Follow the exact output format requested.',
-    })
-
-    if (sessionError) {
-      setSuggestionsLoading(false)
-      setSuggestionsError(sessionError)
-      return
-    }
-
-    const { result, error: promptError } = await aiPrompt(promptText, session)
-    destroySession(session)
+    const { result, error } = await promptLLM(
+      'You are a writing assistant. Suggest specific, actionable edits. Follow the exact output format requested.',
+      promptText
+    )
 
     setSuggestionsLoading(false)
-    if (promptError) {
-      setSuggestionsError(promptError)
+    if (error) {
+      setSuggestionsError(error)
     } else {
       setSuggestions(parseSuggestions(result))
     }
-  }, [suggestions, suggestionsLoading, fileData, fileType])
+  }, [suggestions, suggestionsLoading, fileData, fileType, promptLLM])
 
   const handleDismissSuggestion = useCallback((index) => {
     setSuggestions(prev => prev?.filter((_, i) => i !== index) || null)
@@ -138,26 +129,18 @@ export function TxtViewer() {
     setSummaryLoading(true)
     setSummaryError(null)
 
-    const { session, error: sessionError } = await createPromptSession({
-      systemPrompt: 'You are a document analyst. Provide concise, structured analysis of text content. Use plain text, not markdown.',
-    })
-
-    if (sessionError) {
-      setSummaryLoading(false)
-      setSummaryError(sessionError)
-      return
-    }
-
-    const { result, error: promptError } = await aiPrompt(promptText, session)
-    destroySession(session)
+    const { result, error } = await promptLLM(
+      'You are a document analyst. Provide concise, structured analysis of text content. Use plain text, not markdown.',
+      promptText
+    )
 
     setSummaryLoading(false)
-    if (promptError) {
-      setSummaryError(promptError)
+    if (error) {
+      setSummaryError(error)
     } else {
       setSummary(result)
     }
-  }, [aiSidebar, summary, summaryLoading, fileData, fileType])
+  }, [aiSidebar, summary, summaryLoading, fileData, fileType, promptLLM])
 
   const handleRetrySummary = useCallback(() => {
     setSummary(null)
