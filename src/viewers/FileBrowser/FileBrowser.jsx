@@ -541,7 +541,7 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
 
   const handleAnalyze = useCallback(() => {
     sidebar.toggleSidebar()
-  }, [sidebar])
+  }, [sidebar.toggleSidebar])
 
   const showAnalyze = aiEnabled && isAIReady
 

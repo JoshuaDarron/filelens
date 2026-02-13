@@ -37,7 +37,7 @@ export function CsvViewer() {
 
   const handleAnalyze = useCallback(() => {
     sidebar.toggleSidebar()
-  }, [sidebar])
+  }, [sidebar.toggleSidebar])
 
   const totalDataRows = fileData ? fileData.length - 1 : 0
   const pagination = usePagination(totalDataRows)

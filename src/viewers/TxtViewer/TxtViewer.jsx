@@ -79,7 +79,7 @@ export function TxtViewer() {
 
   const handleAnalyze = useCallback(() => {
     aiSidebar.toggleSidebar()
-  }, [aiSidebar])
+  }, [aiSidebar.toggleSidebar])
 
   // null until file loads; 'edit' | 'split' | 'preview' for md, 'raw' for txt
   const [wordWrap, setWordWrap] = useState(true)

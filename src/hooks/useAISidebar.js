@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 
 export function useAISidebar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -35,7 +35,7 @@ export function useAISidebar() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [toggleSidebar])
 
-  return {
+  return useMemo(() => ({
     isSidebarOpen,
     sidebarContent,
     activeTab,
@@ -44,5 +44,5 @@ export function useAISidebar() {
     closeSidebar,
     toggleSidebar,
     updateContent,
-  }
+  }), [isSidebarOpen, sidebarContent, activeTab, openSidebar, closeSidebar, toggleSidebar, updateContent])
 }

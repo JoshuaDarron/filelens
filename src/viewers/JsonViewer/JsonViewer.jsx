@@ -116,7 +116,7 @@ export function JsonViewer() {
 
   const handleAnalyze = useCallback(() => {
     sidebar.toggleSidebar()
-  }, [sidebar])
+  }, [sidebar.toggleSidebar])
 
   const handleSearchResultClick = useCallback((result) => {
     if (!result.text || !rawText) return
