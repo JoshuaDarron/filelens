@@ -59,7 +59,6 @@ export function Header({
     <>
     <header className="header">
       <div className="header-left">
-        <a href={`${window.location.pathname}?type=directory`} className="logo logo-link">FileLens</a>
         {parentDirUrl && (
           <a href={parentDirUrl} className="btn btn-outline back-btn" title="Back to folder">
             <i className="bi bi-arrow-left"></i>

@@ -63,7 +63,6 @@ export function Settings() {
         <button className="btn btn-outline settings-back-btn" onClick={handleBack}>
           <i className="bi bi-arrow-left"></i>
         </button>
-        <h1 className="settings-title">Settings</h1>
       </header>
 
       <div className="settings-body">
