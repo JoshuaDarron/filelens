@@ -77,6 +77,10 @@ export function TxtViewer() {
   const searchIndex = useSearchIndex(fileData, fileType)
   const [viewMode, setViewMode] = useState(null)
 
+  useEffect(() => {
+    aiSidebar.closeSidebar()
+  }, [viewMode]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleAnalyze = useCallback(() => {
     aiSidebar.toggleSidebar()
   }, [aiSidebar.toggleSidebar])

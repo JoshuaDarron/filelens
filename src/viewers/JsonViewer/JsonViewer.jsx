@@ -114,6 +114,10 @@ export function JsonViewer() {
   const rawPreRef = useRef(null)
   const rawLines = useMemo(() => rawText ? rawText.split('\n') : [], [rawText])
 
+  useEffect(() => {
+    sidebar.closeSidebar()
+  }, [viewMode]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleAnalyze = useCallback(() => {
     sidebar.toggleSidebar()
   }, [sidebar.toggleSidebar])

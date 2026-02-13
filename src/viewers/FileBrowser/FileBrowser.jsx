@@ -343,6 +343,8 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
   }, [currentPath, isUrlMode, navigateToDirectoryUrl, toast])
 
   const handleFileClick = useCallback(async (file) => {
+    sidebar.closeSidebar()
+
     if (file.kind === 'directory') {
       if (isUrlMode && file.url) {
         navigateToDirectoryUrl(file.url)
@@ -371,7 +373,7 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
     } else {
       toast.info(`File type .${ext} is not supported yet`)
     }
-  }, [isUrlMode, navigateToDirectoryUrl, navigateToFolder, onFileSelect, toast])
+  }, [isUrlMode, navigateToDirectoryUrl, navigateToFolder, onFileSelect, toast, sidebar.closeSidebar])
 
   const formatDate = (timestamp) => {
     if (!timestamp) return '-'
