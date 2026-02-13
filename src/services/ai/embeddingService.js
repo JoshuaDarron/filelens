@@ -33,7 +33,9 @@ export async function loadEmbeddingModel(onProgress) {
   modelStatus = 'loading'
 
   try {
-    const { pipeline: pipelineFn } = await import('@xenova/transformers')
+    const { pipeline: pipelineFn, env } = await import('@xenova/transformers')
+    env.backends.onnx.wasm.proxy = false
+    env.backends.onnx.wasm.numThreads = 1
     pipeline = pipelineFn
 
     modelInstance = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
