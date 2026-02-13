@@ -380,12 +380,14 @@ export function JsonViewer() {
             )}
           </div>
         </main>
-        <AISidebar
-          isOpen={sidebar.isSidebarOpen}
-          onClose={sidebar.closeSidebar}
-        >
-          <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
-        </AISidebar>
+        {showAnalyze && (
+          <AISidebar
+            isOpen={sidebar.isSidebarOpen}
+            onClose={sidebar.closeSidebar}
+          >
+            <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
+          </AISidebar>
+        )}
       </div>
     </>
   )

@@ -724,12 +724,14 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
           )}
         </div>
       </main>
-      <AISidebar
-        isOpen={sidebar.isSidebarOpen}
-        onClose={sidebar.closeSidebar}
-      >
-        <DirectorySearchView files={files} />
-      </AISidebar>
+      {showAnalyze && (
+        <AISidebar
+          isOpen={sidebar.isSidebarOpen}
+          onClose={sidebar.closeSidebar}
+        >
+          <DirectorySearchView files={files} />
+        </AISidebar>
+      )}
       </div>
     </>
   )

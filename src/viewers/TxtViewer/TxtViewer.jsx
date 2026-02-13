@@ -504,12 +504,14 @@ export function TxtViewer() {
             </div>
           )}
         </main>
-        <AISidebar
-          isOpen={aiSidebar.isSidebarOpen}
-          onClose={aiSidebar.closeSidebar}
-        >
-          <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
-        </AISidebar>
+        {showAnalyze && (
+          <AISidebar
+            isOpen={aiSidebar.isSidebarOpen}
+            onClose={aiSidebar.closeSidebar}
+          >
+            <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
+          </AISidebar>
+        )}
       </div>
     </>
   )
