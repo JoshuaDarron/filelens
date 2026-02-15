@@ -22,6 +22,8 @@ export function CsvViewer() {
     filename,
     fileHandle,
     isModified,
+    isLoading,
+    setIsLoading,
     loadFile,
     updateData,
     markSaved,
@@ -230,6 +232,7 @@ export function CsvViewer() {
     const type = urlParams.get('type')
 
     if (csvUrl && (!type || type === 'csv')) {
+      setIsLoading(true)
       const loadFromURL = async () => {
         const loadingId = toast.loading('Loading CSV...')
         try {
@@ -265,9 +268,11 @@ export function CsvViewer() {
           }
 
           toast.hide(loadingId)
+          setIsLoading(false)
           processCSVText(text, fname, null, csvUrl)
         } catch (error) {
           toast.hide(loadingId)
+          setIsLoading(false)
           if (csvUrl.startsWith('file://')) {
             toast.error(
               'Unable to load local file. Please ensure "Allow access to file URLs" is enabled in the extension settings.',
@@ -293,16 +298,23 @@ export function CsvViewer() {
       <>
         <Header />
         <main className="main-content">
-          <EmptyState
-            icon="bi-file-earmark-spreadsheet"
-            title="CSV Editor & Viewer"
-            description="Open a CSV file to view and edit its contents. You can also click on any CSV link on the web and it will automatically open in this editor."
-            onFileDrop={handleFileDrop}
-            onOpenFile={handleOpenFile}
-            acceptedExtensions={['.csv', '.txt']}
-            dropZoneText="Drop your CSV file here"
-            dropZoneButtonText="Choose CSV File"
-          />
+          {isLoading ? (
+            <div className="viewer-loading">
+              <div className="viewer-loading-spinner"></div>
+              <div className="viewer-loading-text">Loading...</div>
+            </div>
+          ) : (
+            <EmptyState
+              icon="bi-file-earmark-spreadsheet"
+              title="CSV Editor & Viewer"
+              description="Open a CSV file to view and edit its contents. You can also click on any CSV link on the web and it will automatically open in this editor."
+              onFileDrop={handleFileDrop}
+              onOpenFile={handleOpenFile}
+              acceptedExtensions={['.csv', '.txt']}
+              dropZoneText="Drop your CSV file here"
+              dropZoneButtonText="Choose CSV File"
+            />
+          )}
         </main>
       </>
     )

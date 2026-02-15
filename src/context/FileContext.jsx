@@ -10,6 +10,7 @@ export function FileProvider({ children }) {
   const [isModified, setIsModified] = useState(false)
   const [fileHandle, setFileHandle] = useState(null)
   const [fileUrl, setFileUrl] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const resetFile = useCallback(() => {
     setFileData(null)
@@ -71,6 +72,8 @@ export function FileProvider({ children }) {
     setIsModified,
     setFileHandle,
     setFileUrl,
+    isLoading,
+    setIsLoading,
     resetFile,
     loadFile,
     updateData,

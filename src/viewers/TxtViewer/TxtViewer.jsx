@@ -64,6 +64,8 @@ export function TxtViewer() {
     fileType,
     fileHandle,
     isModified,
+    isLoading,
+    setIsLoading,
     loadFile,
     updateData,
     markSaved
@@ -285,6 +287,7 @@ export function TxtViewer() {
     const type = urlParams.get('type')
 
     if (txtUrl && (type === 'txt' || type === 'md')) {
+      setIsLoading(true)
       const loadFromURL = async () => {
         const loadingId = toast.loading('Loading file...')
         try {
@@ -320,9 +323,11 @@ export function TxtViewer() {
           }
 
           toast.hide(loadingId)
+          setIsLoading(false)
           processText(text, fname, type, null, txtUrl)
         } catch (error) {
           toast.hide(loadingId)
+          setIsLoading(false)
           if (txtUrl.startsWith('file://')) {
             toast.error(
               'Unable to load local file. Please ensure "Allow access to file URLs" is enabled in the extension settings.',
@@ -345,16 +350,23 @@ export function TxtViewer() {
       <>
         <Header />
         <main className="main-content">
-          <EmptyState
-            icon="bi-file-text"
-            title="Text Viewer"
-            description="Open a text file to view its contents with line numbers. Supports TXT and Markdown files."
-            onFileDrop={handleFileDrop}
-            onOpenFile={handleOpenFile}
-            acceptedExtensions={['.txt', '.md']}
-            dropZoneText="Drop your text file here"
-            dropZoneButtonText="Choose Text File"
-          />
+          {isLoading ? (
+            <div className="viewer-loading">
+              <div className="viewer-loading-spinner"></div>
+              <div className="viewer-loading-text">Loading...</div>
+            </div>
+          ) : (
+            <EmptyState
+              icon="bi-file-text"
+              title="Text Viewer"
+              description="Open a text file to view its contents with line numbers. Supports TXT and Markdown files."
+              onFileDrop={handleFileDrop}
+              onOpenFile={handleOpenFile}
+              acceptedExtensions={['.txt', '.md']}
+              dropZoneText="Drop your text file here"
+              dropZoneButtonText="Choose Text File"
+            />
+          )}
         </main>
       </>
     )

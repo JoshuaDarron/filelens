@@ -99,6 +99,8 @@ export function JsonViewer() {
     fileData,
     filename,
     fileHandle,
+    isLoading,
+    setIsLoading,
     loadFile,
     resetFile
   } = useContext(FileContext)
@@ -245,6 +247,7 @@ export function JsonViewer() {
     const type = urlParams.get('type')
 
     if (jsonUrl && type === 'json') {
+      setIsLoading(true)
       const loadFromURL = async () => {
         const loadingId = toast.loading('Loading JSON...')
         try {
@@ -280,9 +283,11 @@ export function JsonViewer() {
           }
 
           toast.hide(loadingId)
+          setIsLoading(false)
           processJSONText(text, fname, null, jsonUrl)
         } catch (error) {
           toast.hide(loadingId)
+          setIsLoading(false)
           toast.error(`Error loading JSON: ${error.message}`)
         }
       }
@@ -306,16 +311,23 @@ export function JsonViewer() {
       <>
         <Header />
         <main className="main-content">
-          <EmptyState
-            icon="bi-filetype-json"
-            title="JSON Viewer"
-            description="Open a JSON file to view and explore its contents with a collapsible tree view."
-            onFileDrop={handleFileDrop}
-            onOpenFile={handleOpenFile}
-            acceptedExtensions={['.json']}
-            dropZoneText="Drop your JSON file here"
-            dropZoneButtonText="Choose JSON File"
-          />
+          {isLoading ? (
+            <div className="viewer-loading">
+              <div className="viewer-loading-spinner"></div>
+              <div className="viewer-loading-text">Loading...</div>
+            </div>
+          ) : (
+            <EmptyState
+              icon="bi-filetype-json"
+              title="JSON Viewer"
+              description="Open a JSON file to view and explore its contents with a collapsible tree view."
+              onFileDrop={handleFileDrop}
+              onOpenFile={handleOpenFile}
+              acceptedExtensions={['.json']}
+              dropZoneText="Drop your JSON file here"
+              dropZoneButtonText="Choose JSON File"
+            />
+          )}
         </main>
       </>
     )
