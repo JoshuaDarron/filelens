@@ -1,4 +1,4 @@
-import { createContext, useState, useCallback } from 'react'
+import { createContext, useState, useCallback, useMemo } from 'react'
 
 const STORAGE_KEY = 'filelens-settings'
 
@@ -41,7 +41,7 @@ export function SettingsProvider({ children }) {
   }, [])
 
   return (
-    <SettingsContext.Provider value={{ settings, updateSetting }}>
+    <SettingsContext.Provider value={useMemo(() => ({ settings, updateSetting }), [settings, updateSetting])}>
       {children}
     </SettingsContext.Provider>
   )

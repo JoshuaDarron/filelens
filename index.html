@@ -9,8 +9,25 @@
     <link rel="stylesheet" href="./assets/css/json-viewer.css">
     <link rel="stylesheet" href="./assets/css/txt-viewer.css">
     <link rel="stylesheet" href="./assets/css/file-browser.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <script src="./assets/js/theme-init.js"></script>
+    <link rel="stylesheet" href="./assets/fonts/bootstrap-icons/bootstrap-icons.css">
+    <script>
+    // Apply saved theme before first paint to prevent white flash
+    (function() {
+      var pref = 'system';
+      try {
+        var s = JSON.parse(localStorage.getItem('filelens-settings'));
+        if (s && s.theme) pref = s.theme;
+      } catch(e) {
+        var old = localStorage.getItem('csvEditor-theme');
+        if (old) pref = old;
+      }
+      var t = pref === 'system'
+        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : pref;
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.style.colorScheme = t === 'dark' ? 'dark' : 'light';
+    })();
+    </script>
 </head>
 <body>
     <div id="root"></div>

@@ -5,7 +5,8 @@
   "description": "View, edit and export CSV, JSON, TXT, and Markdown files with light/dark mode support",
   "permissions": [
     "activeTab",
-    "webNavigation"
+    "webNavigation",
+    "storage"
   ],
   "host_permissions": [
     "file:///*"
@@ -48,13 +49,14 @@
         "index.html",
         "assets/js/*.js",
         "assets/css/*.css",
-        "assets/images/pngs/*"
+        "assets/images/pngs/*",
+        "assets/fonts/bootstrap-icons/*"
       ],
       "matches": ["<all_urls>", "file:///*"]
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; worker-src 'self'"
   },
   "icons": {
     "16": "assets/images/pngs/icon16.png",

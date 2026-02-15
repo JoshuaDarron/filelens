@@ -1,11 +1,21 @@
-import { useState, useEffect, useCallback, useContext } from 'react'
+import { useState, useEffect, useCallback, useContext, lazy, Suspense } from 'react'
 import { FileContext } from './context/FileContext'
 import { ToastContainer } from './components/Toast/ToastContainer'
-import { CsvViewer } from './viewers/CsvViewer'
-import { JsonViewer } from './viewers/JsonViewer'
-import { TxtViewer } from './viewers/TxtViewer'
-import { FileBrowser } from './viewers/FileBrowser'
-import { Settings } from './components/Settings/Settings'
+
+const CsvViewer = lazy(() => import('./viewers/CsvViewer').then(m => ({ default: m.CsvViewer })))
+const JsonViewer = lazy(() => import('./viewers/JsonViewer').then(m => ({ default: m.JsonViewer })))
+const TxtViewer = lazy(() => import('./viewers/TxtViewer').then(m => ({ default: m.TxtViewer })))
+const FileBrowser = lazy(() => import('./viewers/FileBrowser').then(m => ({ default: m.FileBrowser })))
+const Settings = lazy(() => import('./components/Settings/Settings').then(m => ({ default: m.Settings })))
+
+function ViewerLoading() {
+  return (
+    <div className="viewer-loading">
+      <div className="viewer-loading-spinner"></div>
+      <div className="viewer-loading-text">Loading...</div>
+    </div>
+  )
+}
 
 function App() {
   const [activeViewer, setActiveViewer] = useState(null)
@@ -79,7 +89,9 @@ function App() {
   return (
     <>
       <ToastContainer />
-      {renderViewer()}
+      <Suspense fallback={<ViewerLoading />}>
+        {renderViewer()}
+      </Suspense>
     </>
   )
 }

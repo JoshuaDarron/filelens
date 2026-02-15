@@ -53,6 +53,19 @@ function isSupportedFile(url) {
   return getFileType(url) !== null;
 }
 
+// Handle detectFileType messages from content.js
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'detectFileType' && message.url) {
+    sendResponse({ fileType: getFileType(message.url) });
+  }
+  return false; // synchronous response
+});
+
+// Note: declarativeNetRequest was evaluated and is not suitable here because:
+// - It has no support for file:// URLs
+// - The redirect target includes a dynamic extension ID (chrome.runtime.getURL)
+// - It cannot perform content-type-based detection (requires DOM access)
+
 // Handle extension icon click
 chrome.action.onClicked.addListener((tab) => {
   // Open FileLens viewer in a new tab when extension icon is clicked
@@ -132,6 +145,28 @@ chrome.runtime.onInstalled.addListener(() => {
   }, (result) => {
     if (!result) {
       console.log('File access permission not granted. Users may need to enable "Allow access to file URLs" in extension settings.');
+    }
+  });
+
+  // Prefetch embedding model if AI is enabled (opt-in)
+  chrome.storage.local.get('filelens-settings', (data) => {
+    try {
+      const settings = data['filelens-settings'];
+      if (settings && settings.aiEnabled) {
+        const modelUrl = 'https://huggingface.co/Xenova/all-MiniLM-L6-v2/resolve/main/onnx/model_quantized.onnx';
+        caches.open('filelens-model-cache').then((cache) => {
+          cache.match(modelUrl).then((cached) => {
+            if (!cached) {
+              console.log('Prefetching embedding model...');
+              cache.add(modelUrl).catch(() => {
+                // Non-critical: model will be fetched on first use
+              });
+            }
+          });
+        });
+      }
+    } catch {
+      // Ignore — prefetch is best-effort
     }
   });
 });

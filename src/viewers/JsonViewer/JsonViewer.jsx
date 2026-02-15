@@ -1,4 +1,4 @@
-import { useContext, useEffect, useCallback, useState, useMemo, useRef } from 'react'
+import { useContext, useEffect, useCallback, useState, useMemo, useRef, memo } from 'react'
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { useFileLoader } from '../../hooks/useFileLoader'
@@ -7,12 +7,13 @@ import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile } from '../../utils/fileHelpers'
 import { AISidebar } from '../../components/AISidebar/AISidebar'
 import { SemanticSearchView } from '../../components/AISidebar/SemanticSearchView'
+import { InsightsView } from '../../components/AISidebar/InsightsView'
 import { useAISidebar } from '../../hooks/useAISidebar'
 import { useAI } from '../../hooks/useAI'
 import { useAISettings } from '../../hooks/useAISettings'
 import { useSearchIndex } from '../../hooks/useSearchIndex'
 
-function JsonNode({ data, path = '', level = 0, collapsed = false }) {
+const JsonNode = memo(function JsonNode({ data, path = '', level = 0, collapsed = false }) {
   const [isCollapsed, setIsCollapsed] = useState(collapsed && level > 2)
 
   if (data === null) {
@@ -92,7 +93,7 @@ function JsonNode({ data, path = '', level = 0, collapsed = false }) {
   }
 
   return <span>{String(data)}</span>
-}
+})
 
 export function JsonViewer() {
   const {
@@ -110,7 +111,7 @@ export function JsonViewer() {
   const { aiEnabled } = useAISettings()
   const { isAIReady } = useAI()
   const sidebar = useAISidebar()
-  const searchIndex = useSearchIndex(fileData, 'json')
+  const searchIndex = useSearchIndex(fileData, 'json', sidebar.isSidebarOpen)
   const [viewMode, setViewMode] = useState('tree') // 'tree' or 'raw'
   const [rawText, setRawText] = useState('')
   const rawPreRef = useRef(null)
@@ -396,6 +397,7 @@ export function JsonViewer() {
           <AISidebar
             isOpen={sidebar.isSidebarOpen}
             onClose={sidebar.closeSidebar}
+            insightsContent={<InsightsView fileData={fileData} fileType="json" filename={filename} />}
           >
             <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
           </AISidebar>

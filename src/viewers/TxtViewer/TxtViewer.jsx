@@ -10,6 +10,7 @@ import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile, saveFile } from '../../utils/fileHelpers'
 import { AISidebar } from '../../components/AISidebar/AISidebar'
 import { SemanticSearchView } from '../../components/AISidebar/SemanticSearchView'
+import { InsightsView } from '../../components/AISidebar/InsightsView'
 import { useAISidebar } from '../../hooks/useAISidebar'
 import { useAI } from '../../hooks/useAI'
 import { useAISettings } from '../../hooks/useAISettings'
@@ -76,7 +77,7 @@ export function TxtViewer() {
   const { aiEnabled } = useAISettings()
   const { isAIReady } = useAI()
   const aiSidebar = useAISidebar()
-  const searchIndex = useSearchIndex(fileData, fileType)
+  const searchIndex = useSearchIndex(fileData, fileType, aiSidebar.isSidebarOpen)
   const [viewMode, setViewMode] = useState(null)
 
   useEffect(() => {
@@ -153,21 +154,27 @@ export function TxtViewer() {
     document.addEventListener('mouseup', onMouseUp)
   }, [])
 
+  const syncRafRef = useRef(null)
+
   const handleSyncScroll = useCallback((source) => {
     if (scrollingRef.current && scrollingRef.current !== source) return
     scrollingRef.current = source
 
-    const editor = editorRef.current
-    const preview = previewRef.current
-    if (!editor || !preview) return
+    if (syncRafRef.current) return
+    syncRafRef.current = requestAnimationFrame(() => {
+      syncRafRef.current = null
+      const editor = editorRef.current
+      const preview = previewRef.current
+      if (!editor || !preview) { scrollingRef.current = null; return }
 
-    const sourceEl = source === 'editor' ? editor : preview
-    const targetEl = source === 'editor' ? preview : editor
+      const sourceEl = source === 'editor' ? editor : preview
+      const targetEl = source === 'editor' ? preview : editor
 
-    const scrollRatio = sourceEl.scrollTop / (sourceEl.scrollHeight - sourceEl.clientHeight || 1)
-    targetEl.scrollTop = scrollRatio * (targetEl.scrollHeight - targetEl.clientHeight)
+      const scrollRatio = sourceEl.scrollTop / (sourceEl.scrollHeight - sourceEl.clientHeight || 1)
+      targetEl.scrollTop = scrollRatio * (targetEl.scrollHeight - targetEl.clientHeight)
 
-    requestAnimationFrame(() => { scrollingRef.current = null })
+      requestAnimationFrame(() => { scrollingRef.current = null })
+    })
   }, [])
 
   const handleMdEditScroll = useCallback((e) => {
@@ -187,9 +194,17 @@ export function TxtViewer() {
     return fileData.split('\n')
   }, [fileData])
 
-  const renderedHtml = useMemo(() => {
-    if (!fileData || !isMarkdown) return ''
-    return marked.parse(fileData)
+  const [renderedHtml, setRenderedHtml] = useState('')
+
+  useEffect(() => {
+    if (!fileData || !isMarkdown) {
+      setRenderedHtml('')
+      return
+    }
+    const timer = setTimeout(() => {
+      setRenderedHtml(marked.parse(fileData))
+    }, 250)
+    return () => clearTimeout(timer)
   }, [fileData, isMarkdown])
 
   const language = useMemo(() => getLanguage(filename), [filename])
@@ -520,6 +535,7 @@ export function TxtViewer() {
           <AISidebar
             isOpen={aiSidebar.isSidebarOpen}
             onClose={aiSidebar.closeSidebar}
+            insightsContent={<InsightsView fileData={fileData} fileType={fileType} filename={filename} />}
           >
             <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
           </AISidebar>

@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useSettings } from '../hooks/useSettings'
 
 export const ThemeContext = createContext(null)
@@ -16,17 +16,24 @@ export function ThemeProvider({ children }) {
   const { settings, updateSetting } = useSettings()
   const themePreference = settings.theme || 'system'
   const [resolvedTheme, setResolvedTheme] = useState(() => resolveTheme(themePreference))
+  const resolvedThemeRef = useRef(resolvedTheme)
 
   // Resolve theme whenever preference changes
   useEffect(() => {
-    setResolvedTheme(resolveTheme(themePreference))
+    const next = resolveTheme(themePreference)
+    resolvedThemeRef.current = next
+    setResolvedTheme(next)
   }, [themePreference])
 
   // Listen for OS theme changes when set to "system"
   useEffect(() => {
     if (themePreference !== 'system') return
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = () => setResolvedTheme(getSystemTheme())
+    const handler = () => {
+      const next = getSystemTheme()
+      resolvedThemeRef.current = next
+      setResolvedTheme(next)
+    }
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
   }, [themePreference])
@@ -49,17 +56,17 @@ export function ThemeProvider({ children }) {
   }, [updateSetting])
 
   const toggleTheme = useCallback(() => {
-    const next = resolvedTheme === 'light' ? 'dark' : 'light'
+    const next = resolvedThemeRef.current === 'light' ? 'dark' : 'light'
     updateSetting('theme', next)
-  }, [resolvedTheme, updateSetting])
+  }, [updateSetting])
 
-  const value = {
+  const value = useMemo(() => ({
     theme: resolvedTheme,
     themePreference,
     setTheme,
     toggleTheme,
     isDark: resolvedTheme === 'dark',
-  }
+  }), [resolvedTheme, themePreference, setTheme, toggleTheme])
 
   return (
     <ThemeContext.Provider value={value}>

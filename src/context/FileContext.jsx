@@ -1,4 +1,4 @@
-import { createContext, useState, useCallback } from 'react'
+import { createContext, useState, useCallback, useMemo } from 'react'
 
 export const FileContext = createContext(null)
 
@@ -24,7 +24,7 @@ export function FileProvider({ children }) {
 
   const loadFile = useCallback((data, name, type, handle = null, url = null) => {
     setFileData(data)
-    setOriginalData(JSON.parse(JSON.stringify(data)))
+    setOriginalData(structuredClone(data))
     setFilename(name)
     setFileType(type)
     setIsModified(false)
@@ -38,7 +38,7 @@ export function FileProvider({ children }) {
   }, [])
 
   const markSaved = useCallback(() => {
-    setOriginalData(JSON.parse(JSON.stringify(fileData)))
+    setOriginalData(structuredClone(fileData))
     setIsModified(false)
   }, [fileData])
 
@@ -58,7 +58,7 @@ export function FileProvider({ children }) {
     }
   }, [])
 
-  const value = {
+  const value = useMemo(() => ({
     fileData,
     originalData,
     filename,
@@ -79,7 +79,7 @@ export function FileProvider({ children }) {
     updateData,
     markSaved,
     detectFileType
-  }
+  }), [fileData, originalData, filename, fileType, isModified, fileHandle, fileUrl, isLoading, resetFile, loadFile, updateData, markSaved, detectFileType])
 
   return (
     <FileContext.Provider value={value}>

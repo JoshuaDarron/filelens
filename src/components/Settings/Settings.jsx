@@ -4,6 +4,7 @@ import { useToast } from '../../hooks/useToast'
 import { useAISettings } from '../../hooks/useAISettings'
 import { useAI } from '../../hooks/useAI'
 import { clearModelCache } from '../../services/ai/embeddingService'
+import { clearAllLLMCache } from '../../services/ai/llmService'
 import { version } from '../../../package.json'
 import './Settings.css'
 
@@ -37,7 +38,7 @@ export function Settings() {
   const { themePreference, setTheme } = useTheme()
   const toast = useToast()
   const { aiEnabled, setAIEnabled } = useAISettings()
-  const { embeddingStatus, loadEmbeddingModel, detectCapabilities } = useAI()
+  const { embeddingStatus, loadEmbeddingModel, detectCapabilities, llmStatus, isLLMReady } = useAI()
   const [storageBytes, setStorageBytes] = useState(getStorageUsage)
 
   const handleBack = () => {
@@ -102,7 +103,7 @@ export function Settings() {
             <div className="settings-option-info">
               <span className="settings-option-label">Enable AI features</span>
               <span className="settings-option-desc">
-                AI-powered semantic search — all processed on your device
+                AI-powered semantic search and file insights — all processed on your device
               </span>
             </div>
             <label className="toggle-switch">
@@ -151,6 +152,20 @@ export function Settings() {
                 </div>
               </div>
               <div className="settings-divider"></div>
+              <div className="settings-option">
+                <div className="settings-option-info">
+                  <span className="settings-option-label">Language Model (Insights)</span>
+                  <span className="settings-option-desc">
+                    Powers file summarization and Q&A — download via the Insights tab in the sidebar
+                  </span>
+                </div>
+                <span className={`status-badge status-${isLLMReady ? 'ready' : llmStatus.status === 'loading' ? 'needs-download' : 'unavailable'}`}>
+                  {isLLMReady ? 'Loaded'
+                    : llmStatus.status === 'loading' ? llmStatus.message
+                    : 'Not loaded'}
+                </span>
+              </div>
+              <div className="settings-divider"></div>
               <div className="ai-privacy-note">
                 <i className="bi bi-shield-check"></i>
                 <span>All AI processing happens entirely on your device. No file content is ever sent to external servers.</span>
@@ -191,7 +206,7 @@ export function Settings() {
               <div className="settings-divider"></div>
               <div className="settings-option">
                 <div className="settings-option-info">
-                  <span className="settings-option-label">Clear AI model cache</span>
+                  <span className="settings-option-label">Clear embedding model cache</span>
                   <span className="settings-option-desc">
                     Remove downloaded embedding model (~23 MB)
                   </span>
@@ -199,10 +214,29 @@ export function Settings() {
                 <button className="btn btn-danger btn-sm" onClick={async () => {
                   const result = await clearModelCache()
                   if (result.success) {
-                    toast.success('AI model cache cleared')
+                    toast.success('Embedding model cache cleared')
                     detectCapabilities()
                   } else {
-                    toast.error('Failed to clear AI cache')
+                    toast.error('Failed to clear embedding cache')
+                  }
+                }}>
+                  <i className="bi bi-trash3"></i> Clear
+                </button>
+              </div>
+              <div className="settings-divider"></div>
+              <div className="settings-option">
+                <div className="settings-option-info">
+                  <span className="settings-option-label">Clear language model cache</span>
+                  <span className="settings-option-desc">
+                    Remove downloaded LLM models (can be several GB)
+                  </span>
+                </div>
+                <button className="btn btn-danger btn-sm" onClick={async () => {
+                  const cleared = await clearAllLLMCache()
+                  if (cleared.length > 0) {
+                    toast.success(`Cleared ${cleared.length} cached model(s)`)
+                  } else {
+                    toast.info('No cached models found')
                   }
                 }}>
                   <i className="bi bi-trash3"></i> Clear

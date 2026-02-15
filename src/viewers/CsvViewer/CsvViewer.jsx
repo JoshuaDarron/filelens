@@ -11,6 +11,7 @@ import { parseCSV, generateCSVContent, createDefaultCSV, validateCSVData } from 
 import { saveFile, downloadFile } from '../../utils/fileHelpers'
 import { AISidebar } from '../../components/AISidebar/AISidebar'
 import { SemanticSearchView } from '../../components/AISidebar/SemanticSearchView'
+import { InsightsView } from '../../components/AISidebar/InsightsView'
 import { useAISidebar } from '../../hooks/useAISidebar'
 import { useAI } from '../../hooks/useAI'
 import { useAISettings } from '../../hooks/useAISettings'
@@ -35,7 +36,7 @@ export function CsvViewer() {
   const { aiEnabled } = useAISettings()
   const { isAIReady } = useAI()
   const sidebar = useAISidebar()
-  const searchIndex = useSearchIndex(fileData, 'csv')
+  const searchIndex = useSearchIndex(fileData, 'csv', sidebar.isSidebarOpen)
 
   const handleAnalyze = useCallback(() => {
     sidebar.toggleSidebar()
@@ -51,20 +52,22 @@ export function CsvViewer() {
     const targetPage = Math.floor(dataRowIndex / pagination.rowsPerPage) + 1
 
     const scrollAndHighlight = () => {
-      const rowInPage = dataRowIndex - (targetPage - 1) * pagination.rowsPerPage
-      const row = document.querySelector(`#csvTable tbody tr:nth-child(${rowInPage + 1})`)
-      if (!row) return
-      row.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      row.classList.remove('ai-search-highlight')
-      // Force reflow so re-adding the class restarts the animation
-      void row.offsetWidth
-      row.classList.add('ai-search-highlight')
-      setTimeout(() => row.classList.remove('ai-search-highlight'), 2000)
+      requestAnimationFrame(() => {
+        const rowInPage = dataRowIndex - (targetPage - 1) * pagination.rowsPerPage
+        const row = document.querySelector(`#csvTable tbody tr:nth-child(${rowInPage + 1})`)
+        if (!row) return
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        row.classList.remove('ai-search-highlight')
+        void row.offsetWidth
+        row.classList.add('ai-search-highlight')
+        setTimeout(() => row.classList.remove('ai-search-highlight'), 2000)
+      })
     }
 
     if (targetPage !== pagination.currentPage) {
       pagination.goToPage(targetPage)
-      setTimeout(scrollAndHighlight, 50)
+      // Double-rAF: wait for React render + browser paint after page change
+      requestAnimationFrame(() => requestAnimationFrame(scrollAndHighlight))
     } else {
       scrollAndHighlight()
     }
@@ -362,6 +365,7 @@ export function CsvViewer() {
           <AISidebar
             isOpen={sidebar.isSidebarOpen}
             onClose={sidebar.closeSidebar}
+            insightsContent={<InsightsView fileData={fileData} fileType="csv" filename={filename} />}
           >
             <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
           </AISidebar>

@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
-import { copyFileSync, mkdirSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'fs'
+import { copyFileSync, mkdirSync, existsSync, readdirSync } from 'fs'
 
 function copyExtensionAssets() {
   return {
@@ -41,10 +41,6 @@ function copyExtensionAssets() {
         resolve(__dirname, 'assets/js/content-directory.js'),
         resolve(distDir, 'assets/js/content-directory.js')
       )
-      copyFileSync(
-        resolve(__dirname, 'assets/js/theme-init.js'),
-        resolve(distDir, 'assets/js/theme-init.js')
-      )
 
       // Copy CSS files
       const cssFiles = readdirSync(resolve(__dirname, 'assets/css'))
@@ -69,31 +65,35 @@ function copyExtensionAssets() {
         })
       }
 
-      // Update index.html to include CSS links
-      const indexPath = resolve(distDir, 'index.html')
-      let html = readFileSync(indexPath, 'utf-8')
-
-      // Add CSS imports before </head> if not already present
-      const cssImports = `
-    <link rel="stylesheet" href="./assets/css/shared.css">
-    <link rel="stylesheet" href="./assets/css/csv-viewer.css">
-    <link rel="stylesheet" href="./assets/css/json-viewer.css">
-    <link rel="stylesheet" href="./assets/css/txt-viewer.css">
-    <link rel="stylesheet" href="./assets/css/file-browser.css">`
-
-      if (!html.includes('shared.css')) {
-        html = html.replace('</head>', cssImports + '\n</head>')
-        writeFileSync(indexPath, html)
+      // Copy Bootstrap Icons fonts
+      const fontsDir = resolve(__dirname, 'assets/fonts/bootstrap-icons')
+      const distFontsDir = resolve(distDir, 'assets/fonts/bootstrap-icons')
+      if (existsSync(fontsDir)) {
+        mkdirSync(distFontsDir, { recursive: true })
+        const fontFiles = readdirSync(fontsDir)
+        fontFiles.forEach(file => {
+          copyFileSync(
+            resolve(fontsDir, file),
+            resolve(distFontsDir, file)
+          )
+        })
       }
     }
   }
 }
 
+const plugins = [react(), copyExtensionAssets()]
+
+if (process.env.ANALYZE) {
+  const { visualizer } = await import('rollup-plugin-visualizer')
+  plugins.push(visualizer({ open: true, filename: 'dist/stats.html' }))
+}
+
 export default defineConfig({
-  plugins: [react(), copyExtensionAssets()],
+  plugins,
   base: './',
   optimizeDeps: {
-    exclude: ['@xenova/transformers']
+    exclude: ['@xenova/transformers', '@mlc-ai/web-llm']
   },
   test: {
     globals: true,
@@ -108,8 +108,22 @@ export default defineConfig({
       },
       output: {
         entryFileNames: 'assets/js/[name].js',
-        chunkFileNames: 'assets/js/[name].js',
-        assetFileNames: 'assets/[ext]/[name].[ext]'
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        assetFileNames: 'assets/[ext]/[name].[ext]',
+        manualChunks(id) {
+          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
+            return 'vendor-react'
+          }
+          if (id.includes('node_modules/marked') || id.includes('node_modules/highlight.js')) {
+            return 'vendor-markdown'
+          }
+          if (id.includes('node_modules/@xenova/transformers') || id.includes('node_modules/onnxruntime')) {
+            return 'vendor-ai'
+          }
+          if (id.includes('node_modules/@mlc-ai/web-llm')) {
+            return 'vendor-llm'
+          }
+        }
       }
     }
   }
