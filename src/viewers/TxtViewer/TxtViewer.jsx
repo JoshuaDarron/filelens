@@ -5,7 +5,7 @@ import hljs from 'highlight.js'
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { useFileLoader } from '../../hooks/useFileLoader'
-import { Header } from '../../components/Header/Header'
+import { useHeader } from '../../hooks/useHeader'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile, saveFile } from '../../utils/fileHelpers'
 import { AISidebar } from '../../components/AISidebar/AISidebar'
@@ -364,96 +364,103 @@ export function TxtViewer() {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const stats = fileData ? { lines: lines.length } : null
+  const showAnalyze = aiEnabled && isAIReady
+
+  const stats = useMemo(() => {
+    if (fileData == null) return null
+    return { lines: lines.length }
+  }, [fileData, lines.length])
+
+  const toolbarContent = useMemo(() => {
+    if (fileData == null) return null
+    if (isMarkdown) {
+      return (
+        <div className="view-toggle">
+          <button
+            className={`view-toggle-btn ${activeViewMode === 'edit' ? 'active' : ''}`}
+            onClick={() => setViewMode('edit')}
+          >
+            Edit
+          </button>
+          <button
+            className={`view-toggle-btn ${activeViewMode === 'split' ? 'active' : ''}`}
+            onClick={() => setViewMode('split')}
+          >
+            Split
+          </button>
+          <button
+            className={`view-toggle-btn ${activeViewMode === 'preview' ? 'active' : ''}`}
+            onClick={() => setViewMode('preview')}
+          >
+            Preview
+          </button>
+        </div>
+      )
+    }
+    return (
+      <>
+        <div className="view-toggle">
+          <button
+            className={`view-toggle-btn ${activeViewMode === 'raw' ? 'active' : ''}`}
+            onClick={() => setViewMode('raw')}
+          >
+            View
+          </button>
+          <button
+            className={`view-toggle-btn ${activeViewMode === 'edit' ? 'active' : ''}`}
+            onClick={() => setViewMode('edit')}
+          >
+            Edit
+          </button>
+        </div>
+        <button
+          className={`btn btn-outline ${!wordWrap ? 'active' : ''}`}
+          onClick={() => setWordWrap(!wordWrap)}
+          title="Toggle word wrap"
+        >
+          <i className="bi bi-text-wrap"></i>
+        </button>
+      </>
+    )
+  }, [fileData, isMarkdown, activeViewMode, wordWrap])
+
+  useHeader({
+    onSave: handleSave,
+    onExport: handleExport,
+    onAnalyze: handleAnalyze,
+    showSave: !!fileHandle,
+    showExport: fileData != null,
+    showAnalyze: showAnalyze && fileData != null,
+    stats,
+    toolbarContent,
+  })
 
   if (fileData == null) {
     return (
-      <>
-        <Header />
-        <main className="main-content">
-          {isLoading ? (
-            <div className="viewer-loading">
-              <div className="viewer-loading-spinner"></div>
-              <div className="viewer-loading-text">Loading...</div>
-            </div>
-          ) : (
-            <EmptyState
-              icon="bi-file-text"
-              title="Text Viewer"
-              description="Open a text file to view its contents with line numbers. Supports TXT and Markdown files."
-              onFileDrop={handleFileDrop}
-              onOpenFile={handleOpenFile}
-              acceptedExtensions={['.txt', '.md']}
-              dropZoneText="Drop your text file here"
-              dropZoneButtonText="Choose Text File"
-            />
-          )}
-        </main>
-      </>
+      <main className="main-content">
+        {isLoading ? (
+          <div className="viewer-loading">
+            <div className="viewer-loading-spinner"></div>
+            <div className="viewer-loading-text">Loading...</div>
+          </div>
+        ) : (
+          <EmptyState
+            icon="bi-file-text"
+            title="Text Viewer"
+            description="Open a text file to view its contents with line numbers. Supports TXT and Markdown files."
+            onFileDrop={handleFileDrop}
+            onOpenFile={handleOpenFile}
+            acceptedExtensions={['.txt', '.md']}
+            dropZoneText="Drop your text file here"
+            dropZoneButtonText="Choose Text File"
+          />
+        )}
+      </main>
     )
   }
 
-  const showAnalyze = aiEnabled && isAIReady
-
   return (
     <>
-      <Header
-        onSave={handleSave}
-        onExport={handleExport}
-        onAnalyze={handleAnalyze}
-        showSave={!!fileHandle}
-        showExport={true}
-        showAnalyze={showAnalyze}
-        stats={stats}
-      >
-        {isMarkdown && (
-          <div className="view-toggle">
-            <button
-              className={`view-toggle-btn ${activeViewMode === 'edit' ? 'active' : ''}`}
-              onClick={() => setViewMode('edit')}
-            >
-              Edit
-            </button>
-            <button
-              className={`view-toggle-btn ${activeViewMode === 'split' ? 'active' : ''}`}
-              onClick={() => setViewMode('split')}
-            >
-              Split
-            </button>
-            <button
-              className={`view-toggle-btn ${activeViewMode === 'preview' ? 'active' : ''}`}
-              onClick={() => setViewMode('preview')}
-            >
-              Preview
-            </button>
-          </div>
-        )}
-        {!isMarkdown && (
-          <>
-            <div className="view-toggle">
-              <button
-                className={`view-toggle-btn ${activeViewMode === 'raw' ? 'active' : ''}`}
-                onClick={() => setViewMode('raw')}
-              >
-                View
-              </button>
-              <button
-                className={`view-toggle-btn ${activeViewMode === 'edit' ? 'active' : ''}`}
-                onClick={() => setViewMode('edit')}
-              >
-                Edit
-              </button>
-            </div>
-            <button
-              className={`btn btn-outline ${!wordWrap ? 'active' : ''}`}
-              onClick={() => setWordWrap(!wordWrap)}
-              title="Toggle word wrap"
-            >
-              <i className="bi bi-text-wrap"></i>
-            </button>
-          </>
-        )}
-      </Header>
       <div className="viewer-layout">
         <main className="main-content">
           {isMarkdown ? (

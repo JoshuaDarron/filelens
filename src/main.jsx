@@ -6,6 +6,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import { ToastProvider } from './context/ToastContext'
 import { FileProvider } from './context/FileContext'
 import { AIProvider } from './context/AIContext'
+import { HeaderProvider } from './context/HeaderContext'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -14,7 +15,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <ToastProvider>
           <AIProvider>
             <FileProvider>
-              <App />
+              <HeaderProvider>
+                <App />
+              </HeaderProvider>
             </FileProvider>
           </AIProvider>
         </ToastProvider>

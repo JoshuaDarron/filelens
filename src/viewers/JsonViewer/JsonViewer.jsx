@@ -2,7 +2,7 @@ import { useContext, useEffect, useCallback, useState, useMemo, useRef, memo } f
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { useFileLoader } from '../../hooks/useFileLoader'
-import { Header } from '../../components/Header/Header'
+import { useHeader } from '../../hooks/useHeader'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile } from '../../utils/fileHelpers'
 import { AISidebar } from '../../components/AISidebar/AISidebar'
@@ -296,7 +296,9 @@ export function JsonViewer() {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const getStats = () => {
+  const showAnalyze = aiEnabled && isAIReady
+
+  const stats = useMemo(() => {
     if (!fileData) return null
     if (Array.isArray(fileData)) {
       return { size: `${fileData.length} items` }
@@ -305,46 +307,12 @@ export function JsonViewer() {
       return { size: `${Object.keys(fileData).length} keys` }
     }
     return null
-  }
+  }, [fileData])
 
-  if (!fileData) {
+  const toolbarContent = useMemo(() => {
+    if (!fileData) return null
     return (
       <>
-        <Header />
-        <main className="main-content">
-          {isLoading ? (
-            <div className="viewer-loading">
-              <div className="viewer-loading-spinner"></div>
-              <div className="viewer-loading-text">Loading...</div>
-            </div>
-          ) : (
-            <EmptyState
-              icon="bi-filetype-json"
-              title="JSON Viewer"
-              description="Open a JSON file to view and explore its contents with a collapsible tree view."
-              onFileDrop={handleFileDrop}
-              onOpenFile={handleOpenFile}
-              acceptedExtensions={['.json']}
-              dropZoneText="Drop your JSON file here"
-              dropZoneButtonText="Choose JSON File"
-            />
-          )}
-        </main>
-      </>
-    )
-  }
-
-  const showAnalyze = aiEnabled && isAIReady
-
-  return (
-    <>
-      <Header
-        onExport={handleExport}
-        onAnalyze={handleAnalyze}
-        showExport={true}
-        showAnalyze={showAnalyze}
-        stats={getStats()}
-      >
         <div className="view-toggle">
           <button
             className={`view-toggle-btn ${viewMode === 'tree' ? 'active' : ''}`}
@@ -366,7 +334,45 @@ export function JsonViewer() {
         >
           <i className="bi bi-clipboard"></i>
         </button>
-      </Header>
+      </>
+    )
+  }, [fileData, viewMode, handleCopy])
+
+  useHeader({
+    onExport: handleExport,
+    onAnalyze: handleAnalyze,
+    showExport: !!fileData,
+    showAnalyze: showAnalyze && !!fileData,
+    stats,
+    toolbarContent,
+  })
+
+  if (!fileData) {
+    return (
+      <main className="main-content">
+        {isLoading ? (
+          <div className="viewer-loading">
+            <div className="viewer-loading-spinner"></div>
+            <div className="viewer-loading-text">Loading...</div>
+          </div>
+        ) : (
+          <EmptyState
+            icon="bi-filetype-json"
+            title="JSON Viewer"
+            description="Open a JSON file to view and explore its contents with a collapsible tree view."
+            onFileDrop={handleFileDrop}
+            onOpenFile={handleOpenFile}
+            acceptedExtensions={['.json']}
+            dropZoneText="Drop your JSON file here"
+            dropZoneButtonText="Choose JSON File"
+          />
+        )}
+      </main>
+    )
+  }
+
+  return (
+    <>
       <div className="viewer-layout">
         <main className="main-content">
           <div className="json-container">

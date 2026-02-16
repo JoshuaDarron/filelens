@@ -1,19 +1,13 @@
-import { useContext, useMemo } from 'react'
+import { memo, useContext, useMemo } from 'react'
 import { FileContext } from '../../context/FileContext'
+import { HeaderContext } from '../../context/HeaderContext'
 import { Breadcrumb } from '../Breadcrumb/Breadcrumb'
 import './Header.css'
 
-export function Header({
-  onSave,
-  onExport,
-  onAnalyze,
-  showSave = false,
-  showExport = false,
-  showAnalyze = false,
-  stats = null,
-  children
-}) {
+export const Header = memo(function Header() {
   const { filename, isModified, fileHandle } = useContext(FileContext)
+  const { config, callbacksRef } = useContext(HeaderContext)
+  const { visible, showSave, showExport, showAnalyze, stats, toolbarContent } = config
 
   const { parentDirUrl, breadcrumbs } = useMemo(() => {
     const params = new URLSearchParams(window.location.search)
@@ -52,6 +46,8 @@ export function Header({
       return { parentDirUrl: null, breadcrumbs: null }
     }
   }, [])
+
+  if (!visible) return null
 
   const canSave = showSave && fileHandle
 
@@ -101,18 +97,18 @@ export function Header({
           </div>
         )}
         {canSave && (
-          <button className="btn btn-primary" onClick={onSave}>
+          <button className="btn btn-primary" onClick={() => callbacksRef.current.onSave?.()}>
             <i className="bi bi-floppy"></i> Save
           </button>
         )}
         {showExport && (
-          <button className="btn btn-success" onClick={onExport}>
+          <button className="btn btn-success" onClick={() => callbacksRef.current.onExport?.()}>
             <i className="bi bi-download"></i> Export
           </button>
         )}
-        {children}
+        {toolbarContent}
         {showAnalyze && (
-          <button className="btn btn-outline ai-analyze-btn" onClick={onAnalyze} title="AI Insights">
+          <button className="btn btn-outline ai-analyze-btn" onClick={() => callbacksRef.current.onAnalyze?.()} title="AI Insights">
             <i className="bi bi-stars"></i>
           </button>
         )}
@@ -128,4 +124,4 @@ export function Header({
     <Breadcrumb items={breadcrumbs} />
     </>
   )
-}
+})

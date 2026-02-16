@@ -7,8 +7,15 @@
   font-size: 14px;
   overflow: visible;
   padding: 8px 16px;
+  min-width: 0;
   background: var(--bg-accent);
   border-bottom: 1px solid var(--border-color);
+}
+
+/* When inside the path bar, breadcrumb is inline — no standalone background/border */
+.browser-path-bar > .breadcrumb {
+  background: none;
+  border-bottom: none;
 }
 
 .breadcrumb-segment {

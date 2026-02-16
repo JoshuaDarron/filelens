@@ -1,9 +1,9 @@
-import { useContext, useEffect, useCallback } from 'react'
+import { useContext, useEffect, useCallback, useMemo } from 'react'
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { usePagination } from '../../hooks/usePagination'
 import { useFileLoader } from '../../hooks/useFileLoader'
-import { Header } from '../../components/Header/Header'
+import { useHeader } from '../../hooks/useHeader'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { Pagination } from '../../components/Pagination/Pagination'
 import { CsvTable } from './CsvTable'
@@ -298,51 +298,49 @@ export function CsvViewer() {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const stats = fileData ? {
-    rows: totalDataRows,
-    cols: fileData[0]?.length || 0
-  } : null
+  const showAnalyze = aiEnabled && isAIReady
+
+  const stats = useMemo(() => {
+    if (!fileData) return null
+    return { rows: totalDataRows, cols: fileData[0]?.length || 0 }
+  }, [fileData, totalDataRows])
+
+  useHeader({
+    onSave: handleSave,
+    onExport: handleExport,
+    onAnalyze: handleAnalyze,
+    showSave: !!fileHandle,
+    showExport: !!fileData,
+    showAnalyze: showAnalyze && !!fileData,
+    stats,
+  })
 
   if (!fileData) {
     return (
-      <>
-        <Header />
-        <main className="main-content">
-          {isLoading ? (
-            <div className="viewer-loading">
-              <div className="viewer-loading-spinner"></div>
-              <div className="viewer-loading-text">Loading...</div>
-            </div>
-          ) : (
-            <EmptyState
-              icon="bi-file-earmark-spreadsheet"
-              title="CSV Editor & Viewer"
-              description="Open a CSV file to view and edit its contents. You can also click on any CSV link on the web and it will automatically open in this editor."
-              onFileDrop={handleFileDrop}
-              onOpenFile={handleOpenFile}
-              acceptedExtensions={['.csv', '.txt']}
-              dropZoneText="Drop your CSV file here"
-              dropZoneButtonText="Choose CSV File"
-            />
-          )}
-        </main>
-      </>
+      <main className="main-content">
+        {isLoading ? (
+          <div className="viewer-loading">
+            <div className="viewer-loading-spinner"></div>
+            <div className="viewer-loading-text">Loading...</div>
+          </div>
+        ) : (
+          <EmptyState
+            icon="bi-file-earmark-spreadsheet"
+            title="CSV Editor & Viewer"
+            description="Open a CSV file to view and edit its contents. You can also click on any CSV link on the web and it will automatically open in this editor."
+            onFileDrop={handleFileDrop}
+            onOpenFile={handleOpenFile}
+            acceptedExtensions={['.csv', '.txt']}
+            dropZoneText="Drop your CSV file here"
+            dropZoneButtonText="Choose CSV File"
+          />
+        )}
+      </main>
     )
   }
 
-  const showAnalyze = aiEnabled && isAIReady
-
   return (
     <>
-      <Header
-        onSave={handleSave}
-        onExport={handleExport}
-        onAnalyze={handleAnalyze}
-        showSave={!!fileHandle}
-        showExport={true}
-        showAnalyze={showAnalyze}
-        stats={stats}
-      />
       <div className="viewer-layout">
         <main className="main-content">
           <div className="table-container" style={{ display: 'flex' }}>

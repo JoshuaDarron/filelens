@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useContext, lazy, Suspense } from 'react'
 import { FileContext } from './context/FileContext'
 import { ToastContainer } from './components/Toast/ToastContainer'
+import { Header } from './components/Header/Header'
 
 const CsvViewer = lazy(() => import('./viewers/CsvViewer').then(m => ({ default: m.CsvViewer })))
 const JsonViewer = lazy(() => import('./viewers/JsonViewer').then(m => ({ default: m.JsonViewer })))
@@ -89,6 +90,7 @@ function App() {
   return (
     <>
       <ToastContainer />
+      <Header />
       <Suspense fallback={<ViewerLoading />}>
         {renderViewer()}
       </Suspense>
