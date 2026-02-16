@@ -35,7 +35,10 @@ function parseDirectoryListing(html, baseUrl) {
     // rawBytes is the URL-encoded path segment for the entry
     // Ensure baseUrl ends with '/' so relative paths resolve correctly
     const normalizedBase = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/'
-    let entryUrl = new URL(rawBytes, normalizedBase).href
+    // Strip leading slash unless it's followed by a drive letter (e.g. /C:)
+    // Chrome uses absolute paths without drive letters for root-level entries
+    const relativePath = rawBytes.replace(/^\/(?![A-Za-z]:)/, '')
+    let entryUrl = new URL(relativePath, normalizedBase).href
 
     // Directory URLs must end with '/' for correct child path resolution
     if (kind === 'directory' && !entryUrl.endsWith('/')) {

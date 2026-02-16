@@ -94,6 +94,12 @@ export function TxtViewer() {
 
   const isMarkdown = fileType === 'md'
 
+  // Derive a safe view mode — prevents blank render when isMarkdown flips
+  // before the viewMode effect catches up
+  const activeViewMode = isMarkdown
+    ? (['edit', 'split', 'preview'].includes(viewMode) ? viewMode : 'split')
+    : (['raw', 'edit'].includes(viewMode) ? viewMode : 'raw')
+
   const handleSearchResultClick = useCallback((result) => {
     if (result.lineIndex == null) return
 
@@ -190,14 +196,14 @@ export function TxtViewer() {
   }, [isMarkdown])
 
   const lines = useMemo(() => {
-    if (!fileData) return []
+    if (fileData == null) return []
     return fileData.split('\n')
   }, [fileData])
 
   const [renderedHtml, setRenderedHtml] = useState('')
 
   useEffect(() => {
-    if (!fileData || !isMarkdown) {
+    if (fileData == null || !isMarkdown) {
       setRenderedHtml('')
       return
     }
@@ -360,7 +366,7 @@ export function TxtViewer() {
 
   const stats = fileData ? { lines: lines.length } : null
 
-  if (!fileData) {
+  if (fileData == null) {
     return (
       <>
         <Header />
@@ -403,19 +409,19 @@ export function TxtViewer() {
         {isMarkdown && (
           <div className="view-toggle">
             <button
-              className={`view-toggle-btn ${viewMode === 'edit' ? 'active' : ''}`}
+              className={`view-toggle-btn ${activeViewMode === 'edit' ? 'active' : ''}`}
               onClick={() => setViewMode('edit')}
             >
               Edit
             </button>
             <button
-              className={`view-toggle-btn ${viewMode === 'split' ? 'active' : ''}`}
+              className={`view-toggle-btn ${activeViewMode === 'split' ? 'active' : ''}`}
               onClick={() => setViewMode('split')}
             >
               Split
             </button>
             <button
-              className={`view-toggle-btn ${viewMode === 'preview' ? 'active' : ''}`}
+              className={`view-toggle-btn ${activeViewMode === 'preview' ? 'active' : ''}`}
               onClick={() => setViewMode('preview')}
             >
               Preview
@@ -426,13 +432,13 @@ export function TxtViewer() {
           <>
             <div className="view-toggle">
               <button
-                className={`view-toggle-btn ${viewMode === 'raw' ? 'active' : ''}`}
+                className={`view-toggle-btn ${activeViewMode === 'raw' ? 'active' : ''}`}
                 onClick={() => setViewMode('raw')}
               >
                 View
               </button>
               <button
-                className={`view-toggle-btn ${viewMode === 'edit' ? 'active' : ''}`}
+                className={`view-toggle-btn ${activeViewMode === 'edit' ? 'active' : ''}`}
                 onClick={() => setViewMode('edit')}
               >
                 Edit
@@ -451,11 +457,11 @@ export function TxtViewer() {
       <div className="viewer-layout">
         <main className="main-content">
           {isMarkdown ? (
-            <div className={`md-split-container md-mode-${viewMode}`} ref={containerRef}>
-              {(viewMode === 'edit' || viewMode === 'split') && (
+            <div className={`md-split-container md-mode-${activeViewMode}`} ref={containerRef}>
+              {(activeViewMode === 'edit' || activeViewMode === 'split') && (
                 <div
                   className="md-editor-pane"
-                  style={viewMode === 'split' ? { flex: `0 0 ${splitPosition}%` } : undefined}
+                  style={activeViewMode === 'split' ? { flex: `0 0 ${splitPosition}%` } : undefined}
                 >
                   <div className="line-numbers md-line-numbers" ref={mdLineNumRef}>
                     {lines.map((_, i) => (
@@ -472,15 +478,15 @@ export function TxtViewer() {
                   />
                 </div>
               )}
-              {viewMode === 'split' && (
+              {activeViewMode === 'split' && (
                 <div className="md-split-divider" onMouseDown={handleDividerMouseDown} />
               )}
-              {(viewMode === 'preview' || viewMode === 'split') && (
+              {(activeViewMode === 'preview' || activeViewMode === 'split') && (
                 <div
                   className="md-preview-pane"
                   ref={previewRef}
-                  onScroll={viewMode === 'split' ? () => handleSyncScroll('preview') : undefined}
-                  style={viewMode === 'split' ? { flex: 1 } : undefined}
+                  onScroll={activeViewMode === 'split' ? () => handleSyncScroll('preview') : undefined}
+                  style={activeViewMode === 'split' ? { flex: 1 } : undefined}
                 >
                   <div
                     className="markdown-content"
@@ -491,7 +497,7 @@ export function TxtViewer() {
             </div>
           ) : (
             <div className="txt-container">
-              {viewMode === 'edit' ? (
+              {activeViewMode === 'edit' ? (
                 <div className="txt-editor-wrapper">
                   <div className="line-numbers" ref={editLineNumRef}>
                     {lines.map((_, i) => (
