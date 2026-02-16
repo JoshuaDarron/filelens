@@ -78,17 +78,18 @@ function buildBreadcrumbsFromUrl(dirUrl) {
     const crumbs = []
 
     for (let i = 0; i < segments.length; i++) {
-      // Reconstruct the URL up to this segment
       const pathUpTo = '/' + segments.slice(0, i + 1).join('/') + '/'
       crumbs.push({
         name: segments[i],
-        url: `file://${pathUpTo}`
+        // Store dirUrl for navigateToBreadcrumb but don't set `url`
+        // so Breadcrumb uses onNavigate (SPA) instead of <a href> (full reload)
+        dirUrl: `file://${pathUpTo}`
       })
     }
 
     return crumbs
   } catch {
-    return [{ name: dirUrl, url: dirUrl }]
+    return [{ name: dirUrl, dirUrl: dirUrl }]
   }
 }
 
@@ -295,8 +296,8 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
     if (isUrlMode) {
       // URL mode: navigate to the breadcrumb's URL
       const target = currentPath[index]
-      if (target.url) {
-        navigateToDirectoryUrl(target.url)
+      if (target.dirUrl) {
+        navigateToDirectoryUrl(target.dirUrl)
       }
       return
     }
