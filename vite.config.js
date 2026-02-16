@@ -41,6 +41,10 @@ function copyExtensionAssets() {
         resolve(__dirname, 'assets/js/content-directory.js'),
         resolve(distDir, 'assets/js/content-directory.js')
       )
+      copyFileSync(
+        resolve(__dirname, 'assets/js/theme-init.js'),
+        resolve(distDir, 'assets/js/theme-init.js')
+      )
 
       // Copy CSS files
       const cssFiles = readdirSync(resolve(__dirname, 'assets/css'))
@@ -101,6 +105,7 @@ export default defineConfig({
     setupFiles: './src/setupTests.js'
   },
   build: {
+    modulePreload: { polyfill: false },
     outDir: 'dist',
     rollupOptions: {
       input: {

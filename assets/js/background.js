@@ -68,9 +68,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Handle extension icon click
 chrome.action.onClicked.addListener((tab) => {
-  // Open FileLens viewer in a new tab when extension icon is clicked
+  // Open FileLens viewer to the OS root directory
+  const rootUrl = encodeURIComponent('file:///');
   chrome.tabs.create({
-    url: chrome.runtime.getURL('index.html')
+    url: chrome.runtime.getURL('index.html') + '?url=' + rootUrl + '&type=directory'
   });
 });
 
