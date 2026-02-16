@@ -42,6 +42,13 @@ export function CsvViewer() {
     sidebar.toggleSidebar()
   }, [sidebar.toggleSidebar])
 
+  // Prevent page-level scroll when data is loaded (grid handles its own scroll)
+  useEffect(() => {
+    if (!fileData) return
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [!!fileData]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const totalDataRows = fileData ? fileData.length - 1 : 0
   const pagination = usePagination(totalDataRows)
 

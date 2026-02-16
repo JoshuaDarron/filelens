@@ -245,7 +245,7 @@ body.theme-ready {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  padding: 80px 20px;
+  height: calc(100vh - 49px);
 }
 
 .viewer-loading-spinner {
