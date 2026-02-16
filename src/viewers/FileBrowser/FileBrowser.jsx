@@ -1,7 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useToast } from '../../hooks/useToast'
 import { useHeader } from '../../hooks/useHeader'
-import { Breadcrumb } from '../../components/Breadcrumb/Breadcrumb'
 import { formatFileSize } from '../../utils/fileHelpers'
 import { AISidebar } from '../../components/AISidebar/AISidebar'
 import { DirectorySearchView } from '../../components/AISidebar/DirectorySearchView'
@@ -550,9 +549,72 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
 
   const showAnalyze = aiEnabled && isAIReady
 
+  const pathBarContent = useMemo(() => (
+    <>
+      <div className="grid-sort-control">
+        <select
+          className="grid-sort-select"
+          value={sortConfig.key}
+          onChange={(e) => setSortConfig({ key: e.target.value, direction: sortConfig.direction })}
+          title="Sort by"
+        >
+          <option value="name">Name</option>
+          <option value="size">Size</option>
+          <option value="modified">Modified</option>
+          <option value="type">Type</option>
+        </select>
+        <button
+          className="grid-sort-direction"
+          onClick={() => setSortConfig(prev => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' }))}
+          title={sortConfig.direction === 'asc' ? 'Ascending' : 'Descending'}
+        >
+          <i className={`bi ${sortConfig.direction === 'asc' ? 'bi-sort-up' : 'bi-sort-down'}`}></i>
+        </button>
+      </div>
+      <div className="view-mode-toggle">
+        <button
+          className={`view-mode-btn ${viewMode === 'list' ? 'active' : ''}`}
+          onClick={() => { setViewMode('list'); localStorage.setItem('fileBrowser-viewMode', 'list') }}
+          title="List view"
+        >
+          <i className="bi bi-list"></i>
+        </button>
+        <button
+          className={`view-mode-btn ${viewMode === 'grid' ? 'active' : ''}`}
+          onClick={() => { setViewMode('grid'); localStorage.setItem('fileBrowser-viewMode', 'grid') }}
+          title="Grid view"
+        >
+          <i className="bi bi-grid"></i>
+        </button>
+      </div>
+      <div className="browser-search-wrapper">
+        <i className="bi bi-search browser-search-icon"></i>
+        <input
+          type="text"
+          className="browser-search-input"
+          placeholder="Search..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        {searchQuery && (
+          <button
+            className="browser-search-clear"
+            onClick={clearSearch}
+            title="Clear search"
+          >
+            <i className="bi bi-x-lg"></i>
+          </button>
+        )}
+      </div>
+    </>
+  ), [sortConfig, viewMode, searchQuery])
+
   useHeader({
     onAnalyze: handleAnalyze,
     showAnalyze,
+    breadcrumbItems: currentPath,
+    breadcrumbOnNavigate: navigateToBreadcrumb,
+    pathBarContent,
   })
 
   return (
@@ -560,67 +622,6 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
       <div className="viewer-layout">
       <main className="main-content">
         <div className="browser-container">
-          <div className="browser-path-bar">
-            <Breadcrumb items={currentPath} onNavigate={navigateToBreadcrumb} />
-            <div className="browser-path-controls">
-              <div className="grid-sort-control">
-                <select
-                  className="grid-sort-select"
-                  value={sortConfig.key}
-                  onChange={(e) => setSortConfig({ key: e.target.value, direction: sortConfig.direction })}
-                  title="Sort by"
-                >
-                  <option value="name">Name</option>
-                  <option value="size">Size</option>
-                  <option value="modified">Modified</option>
-                  <option value="type">Type</option>
-                </select>
-                <button
-                  className="grid-sort-direction"
-                  onClick={() => setSortConfig(prev => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' }))}
-                  title={sortConfig.direction === 'asc' ? 'Ascending' : 'Descending'}
-                >
-                  <i className={`bi ${sortConfig.direction === 'asc' ? 'bi-sort-up' : 'bi-sort-down'}`}></i>
-                </button>
-              </div>
-              <div className="view-mode-toggle">
-                <button
-                  className={`view-mode-btn ${viewMode === 'list' ? 'active' : ''}`}
-                  onClick={() => { setViewMode('list'); localStorage.setItem('fileBrowser-viewMode', 'list') }}
-                  title="List view"
-                >
-                  <i className="bi bi-list"></i>
-                </button>
-                <button
-                  className={`view-mode-btn ${viewMode === 'grid' ? 'active' : ''}`}
-                  onClick={() => { setViewMode('grid'); localStorage.setItem('fileBrowser-viewMode', 'grid') }}
-                  title="Grid view"
-                >
-                  <i className="bi bi-grid"></i>
-                </button>
-              </div>
-              <div className="browser-search-wrapper">
-                <i className="bi bi-search browser-search-icon"></i>
-                <input
-                  type="text"
-                  className="browser-search-input"
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && (
-                  <button
-                    className="browser-search-clear"
-                    onClick={clearSearch}
-                    title="Clear search"
-                  >
-                    <i className="bi bi-x-lg"></i>
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-
           {isLoading ? (
             <div className="browser-loading">
               <div className="browser-loading-spinner"></div>

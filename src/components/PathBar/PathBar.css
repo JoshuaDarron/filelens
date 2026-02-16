@@ -1,0 +1,34 @@
+/* PathBar Component Styles */
+
+.browser-path-bar {
+  display: flex;
+  align-items: center;
+  background: var(--bg-accent);
+  border-bottom: 1px solid var(--border-color);
+  gap: 8px;
+  padding-right: 12px;
+}
+
+.browser-path-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+@media (max-width: 768px) {
+  .browser-path-bar {
+    flex-wrap: wrap;
+    padding-right: 8px;
+  }
+
+  .browser-path-bar > .breadcrumb {
+    flex: 1 1 100%;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .browser-path-controls {
+    padding: 8px 4px;
+  }
+}

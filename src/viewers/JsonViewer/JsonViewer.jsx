@@ -298,21 +298,23 @@ export function JsonViewer() {
 
   const showAnalyze = aiEnabled && isAIReady
 
-  const stats = useMemo(() => {
+  const statsLabel = useMemo(() => {
     if (!fileData) return null
-    if (Array.isArray(fileData)) {
-      return { size: `${fileData.length} items` }
-    }
-    if (typeof fileData === 'object') {
-      return { size: `${Object.keys(fileData).length} keys` }
-    }
+    if (Array.isArray(fileData)) return `${fileData.length} items`
+    if (typeof fileData === 'object') return `${Object.keys(fileData).length} keys`
     return null
   }, [fileData])
 
-  const toolbarContent = useMemo(() => {
+  const pathBarContent = useMemo(() => {
     if (!fileData) return null
     return (
       <>
+        {statsLabel && (
+          <div className="stat">
+            <i className="bi bi-hdd"></i>
+            <span>{statsLabel}</span>
+          </div>
+        )}
         <div className="view-toggle">
           <button
             className={`view-toggle-btn ${viewMode === 'tree' ? 'active' : ''}`}
@@ -334,17 +336,17 @@ export function JsonViewer() {
         >
           <i className="bi bi-clipboard"></i>
         </button>
+        <button className="btn btn-success" onClick={handleExport}>
+          <i className="bi bi-download"></i> Export
+        </button>
       </>
     )
-  }, [fileData, viewMode, handleCopy])
+  }, [fileData, viewMode, handleCopy, handleExport, statsLabel])
 
   useHeader({
-    onExport: handleExport,
     onAnalyze: handleAnalyze,
-    showExport: !!fileData,
     showAnalyze: showAnalyze && !!fileData,
-    stats,
-    toolbarContent,
+    pathBarContent,
   })
 
   if (!fileData) {

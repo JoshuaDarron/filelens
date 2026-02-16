@@ -7,6 +7,8 @@ const defaultConfig = {
   showAnalyze: false,
   stats: null,
   toolbarContent: null,
+  pathBarContent: null,
+  breadcrumbItems: null,
 }
 
 export const HeaderContext = createContext()
@@ -25,16 +27,17 @@ function shallowEqual(a, b) {
 
 export function HeaderProvider({ children }) {
   const [config, setConfig] = useState(defaultConfig)
-  const callbacksRef = useRef({ onSave: null, onExport: null, onAnalyze: null })
+  const callbacksRef = useRef({ onSave: null, onExport: null, onAnalyze: null, breadcrumbOnNavigate: null })
 
   const setHeaderConfig = useCallback((newConfig) => {
     // Separate callbacks from display config
-    const { onSave, onExport, onAnalyze, ...displayConfig } = newConfig
+    const { onSave, onExport, onAnalyze, breadcrumbOnNavigate, ...displayConfig } = newConfig
 
     // Update callbacks ref (never triggers re-render)
     if (onSave !== undefined) callbacksRef.current.onSave = onSave
     if (onExport !== undefined) callbacksRef.current.onExport = onExport
     if (onAnalyze !== undefined) callbacksRef.current.onAnalyze = onAnalyze
+    if (breadcrumbOnNavigate !== undefined) callbacksRef.current.breadcrumbOnNavigate = breadcrumbOnNavigate
 
     // Update display config with shallow equality guard
     setConfig(prev => {
@@ -46,6 +49,8 @@ export function HeaderProvider({ children }) {
         merged.showExport === prev.showExport &&
         merged.showAnalyze === prev.showAnalyze &&
         merged.toolbarContent === prev.toolbarContent &&
+        merged.pathBarContent === prev.pathBarContent &&
+        merged.breadcrumbItems === prev.breadcrumbItems &&
         shallowEqual(merged.stats, prev.stats)
       ) {
         return prev
@@ -55,7 +60,7 @@ export function HeaderProvider({ children }) {
   }, [])
 
   const resetHeader = useCallback(() => {
-    callbacksRef.current = { onSave: null, onExport: null, onAnalyze: null }
+    callbacksRef.current = { onSave: null, onExport: null, onAnalyze: null, breadcrumbOnNavigate: null }
     setConfig(defaultConfig)
   }, [])
 

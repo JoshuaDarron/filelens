@@ -1,49 +1,26 @@
 import { memo, useContext, useMemo } from 'react'
 import { FileContext } from '../../context/FileContext'
 import { HeaderContext } from '../../context/HeaderContext'
-import { Breadcrumb } from '../Breadcrumb/Breadcrumb'
-import './Header.css'
+import './Navbar.css'
 
-export const Header = memo(function Header() {
-  const { filename, isModified, fileHandle } = useContext(FileContext)
+export const Navbar = memo(function Navbar() {
+  const { fileHandle, isModified } = useContext(FileContext)
   const { config, callbacksRef } = useContext(HeaderContext)
   const { visible, showSave, showExport, showAnalyze, stats, toolbarContent } = config
 
-  const { parentDirUrl, breadcrumbs } = useMemo(() => {
+  const parentDirUrl = useMemo(() => {
     const params = new URLSearchParams(window.location.search)
     const fileUrl = params.get('url')
     const type = params.get('type')
-    if (!fileUrl || type === 'directory') return { parentDirUrl: null, breadcrumbs: null }
+    if (!fileUrl || type === 'directory') return null
     try {
       const parsed = new URL(fileUrl)
-      if (parsed.protocol !== 'file:') return { parentDirUrl: null, breadcrumbs: null }
-
-      const pathname = decodeURIComponent(parsed.pathname)
-      const segments = pathname.split('/').filter(Boolean)
-      const crumbs = []
-
-      // Directory segments (all but the last, which is the filename)
-      for (let i = 0; i < segments.length - 1; i++) {
-        const pathUpTo = '/' + segments.slice(0, i + 1).join('/') + '/'
-        const dirUrl = `file://${pathUpTo}`
-        crumbs.push({
-          name: segments[i],
-          url: `${window.location.pathname}?url=${encodeURIComponent(dirUrl)}&type=directory`
-        })
-      }
-
-      // Filename as last segment (no url — not clickable)
-      if (segments.length > 0) {
-        crumbs.push({ name: segments[segments.length - 1], url: null })
-      }
-
+      if (parsed.protocol !== 'file:') return null
       const parentPath = parsed.pathname.replace(/\/[^/]+$/, '/')
       const parentUrl = `file://${parentPath}`
-      const parentViewerUrl = `${window.location.pathname}?url=${encodeURIComponent(parentUrl)}&type=directory`
-
-      return { parentDirUrl: parentViewerUrl, breadcrumbs: crumbs }
+      return `${window.location.pathname}?url=${encodeURIComponent(parentUrl)}&type=directory`
     } catch {
-      return { parentDirUrl: null, breadcrumbs: null }
+      return null
     }
   }, [])
 
@@ -52,7 +29,6 @@ export const Header = memo(function Header() {
   const canSave = showSave && fileHandle
 
   return (
-    <>
     <header className="header">
       <div className="header-left">
         {parentDirUrl && (
@@ -121,7 +97,5 @@ export const Header = memo(function Header() {
         </a>
       </div>
     </header>
-    <Breadcrumb items={breadcrumbs} />
-    </>
   )
 })

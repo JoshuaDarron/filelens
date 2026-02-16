@@ -366,39 +366,47 @@ export function TxtViewer() {
 
   const showAnalyze = aiEnabled && isAIReady
 
-  const stats = useMemo(() => {
+  const pathBarContent = useMemo(() => {
     if (fileData == null) return null
-    return { lines: lines.length }
-  }, [fileData, lines.length])
-
-  const toolbarContent = useMemo(() => {
-    if (fileData == null) return null
+    const linesStat = (
+      <div className="stat">
+        <i className="bi bi-text-left"></i>
+        <span>{lines.length} lines</span>
+      </div>
+    )
     if (isMarkdown) {
       return (
-        <div className="view-toggle">
-          <button
-            className={`view-toggle-btn ${activeViewMode === 'edit' ? 'active' : ''}`}
-            onClick={() => setViewMode('edit')}
-          >
-            Edit
+        <>
+          {linesStat}
+          <div className="view-toggle">
+            <button
+              className={`view-toggle-btn ${activeViewMode === 'edit' ? 'active' : ''}`}
+              onClick={() => setViewMode('edit')}
+            >
+              Edit
+            </button>
+            <button
+              className={`view-toggle-btn ${activeViewMode === 'split' ? 'active' : ''}`}
+              onClick={() => setViewMode('split')}
+            >
+              Split
+            </button>
+            <button
+              className={`view-toggle-btn ${activeViewMode === 'preview' ? 'active' : ''}`}
+              onClick={() => setViewMode('preview')}
+            >
+              Preview
+            </button>
+          </div>
+          <button className="btn btn-success" onClick={handleExport}>
+            <i className="bi bi-download"></i> Export
           </button>
-          <button
-            className={`view-toggle-btn ${activeViewMode === 'split' ? 'active' : ''}`}
-            onClick={() => setViewMode('split')}
-          >
-            Split
-          </button>
-          <button
-            className={`view-toggle-btn ${activeViewMode === 'preview' ? 'active' : ''}`}
-            onClick={() => setViewMode('preview')}
-          >
-            Preview
-          </button>
-        </div>
+        </>
       )
     }
     return (
       <>
+        {linesStat}
         <div className="view-toggle">
           <button
             className={`view-toggle-btn ${activeViewMode === 'raw' ? 'active' : ''}`}
@@ -420,19 +428,19 @@ export function TxtViewer() {
         >
           <i className="bi bi-text-wrap"></i>
         </button>
+        <button className="btn btn-success" onClick={handleExport}>
+          <i className="bi bi-download"></i> Export
+        </button>
       </>
     )
-  }, [fileData, isMarkdown, activeViewMode, wordWrap])
+  }, [fileData, isMarkdown, activeViewMode, wordWrap, handleExport, lines.length])
 
   useHeader({
     onSave: handleSave,
-    onExport: handleExport,
     onAnalyze: handleAnalyze,
     showSave: !!fileHandle,
-    showExport: fileData != null,
     showAnalyze: showAnalyze && fileData != null,
-    stats,
-    toolbarContent,
+    pathBarContent,
   })
 
   if (fileData == null) {
