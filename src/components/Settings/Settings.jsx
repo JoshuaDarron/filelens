@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useTheme } from '../../hooks/useTheme'
 import { useToast } from '../../hooks/useToast'
-import { useHeader } from '../../hooks/useHeader'
+import { usePathBar } from '../../hooks/usePathBar'
 import { useAISettings } from '../../hooks/useAISettings'
 import { useAI } from '../../hooks/useAI'
 import { clearModelCache } from '../../services/ai/embeddingService'
@@ -42,7 +42,7 @@ export function Settings() {
   const { embeddingStatus, loadEmbeddingModel, detectCapabilities, llmStatus, isLLMReady } = useAI()
   const [storageBytes, setStorageBytes] = useState(getStorageUsage)
 
-  useHeader({})
+  usePathBar({ visible: false })
 
   const handleClearData = useCallback(() => {
     const currentTheme = themePreference

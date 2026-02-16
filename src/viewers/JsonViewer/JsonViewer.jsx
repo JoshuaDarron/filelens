@@ -2,7 +2,8 @@ import { useContext, useEffect, useCallback, useState, useMemo, useRef, memo } f
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { useFileLoader } from '../../hooks/useFileLoader'
-import { useHeader } from '../../hooks/useHeader'
+import { usePathBar } from '../../hooks/usePathBar'
+import { usePathBarPortal } from '../../hooks/usePathBarPortal'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile } from '../../utils/fileHelpers'
 import { AISidebar } from '../../components/AISidebar/AISidebar'
@@ -305,49 +306,9 @@ export function JsonViewer() {
     return null
   }, [fileData])
 
-  const pathBarContent = useMemo(() => {
-    if (!fileData) return null
-    return (
-      <>
-        {statsLabel && (
-          <div className="stat">
-            <i className="bi bi-hdd"></i>
-            <span>{statsLabel}</span>
-          </div>
-        )}
-        <div className="view-toggle">
-          <button
-            className={`view-toggle-btn ${viewMode === 'tree' ? 'active' : ''}`}
-            onClick={() => setViewMode('tree')}
-          >
-            Tree
-          </button>
-          <button
-            className={`view-toggle-btn ${viewMode === 'raw' ? 'active' : ''}`}
-            onClick={() => setViewMode('raw')}
-          >
-            Raw
-          </button>
-        </div>
-        <button
-          className="btn btn-outline"
-          onClick={handleCopy}
-          title="Copy to clipboard"
-        >
-          <i className="bi bi-clipboard"></i>
-        </button>
-        <button className="btn btn-success" onClick={handleExport}>
-          <i className="bi bi-download"></i>
-        </button>
-      </>
-    )
-  }, [fileData, viewMode, handleCopy, handleExport, statsLabel])
+  usePathBar({})
 
-  useHeader({
-    onAnalyze: handleAnalyze,
-    showAnalyze: showAnalyze && !!fileData,
-    pathBarContent,
-  })
+  const { renderControls } = usePathBarPortal()
 
   if (!fileData) {
     return (
@@ -375,6 +336,47 @@ export function JsonViewer() {
 
   return (
     <>
+      {renderControls(
+        <>
+          {statsLabel && (
+            <div className="stats">
+              <div className="stat">
+                <i className="bi bi-hdd"></i>
+                <span>{statsLabel}</span>
+              </div>
+            </div>
+          )}
+          <div className="view-toggle">
+            <button
+              className={`view-toggle-btn ${viewMode === 'tree' ? 'active' : ''}`}
+              onClick={() => setViewMode('tree')}
+            >
+              Tree
+            </button>
+            <button
+              className={`view-toggle-btn ${viewMode === 'raw' ? 'active' : ''}`}
+              onClick={() => setViewMode('raw')}
+            >
+              Raw
+            </button>
+          </div>
+          <button
+            className="btn btn-outline"
+            onClick={handleCopy}
+            title="Copy to clipboard"
+          >
+            <i className="bi bi-clipboard"></i>
+          </button>
+          <button className="btn btn-success" onClick={handleExport}>
+            <i className="bi bi-download"></i>
+          </button>
+          {showAnalyze && !!fileData && (
+            <button className="btn btn-outline ai-analyze-btn" onClick={handleAnalyze} title="AI Insights">
+              <i className="bi bi-stars"></i>
+            </button>
+          )}
+        </>
+      )}
       <div className="viewer-layout">
         <main className="main-content">
           <div className="json-container">

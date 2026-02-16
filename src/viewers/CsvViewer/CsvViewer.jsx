@@ -3,7 +3,8 @@ import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { usePagination } from '../../hooks/usePagination'
 import { useFileLoader } from '../../hooks/useFileLoader'
-import { useHeader } from '../../hooks/useHeader'
+import { usePathBar } from '../../hooks/usePathBar'
+import { usePathBarPortal } from '../../hooks/usePathBarPortal'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { Pagination } from '../../components/Pagination/Pagination'
 import { CsvTable } from './CsvTable'
@@ -300,20 +301,9 @@ export function CsvViewer() {
 
   const showAnalyze = aiEnabled && isAIReady
 
-  const stats = useMemo(() => {
-    if (!fileData) return null
-    return { rows: totalDataRows, cols: fileData[0]?.length || 0 }
-  }, [fileData, totalDataRows])
+  usePathBar({})
 
-  useHeader({
-    onSave: handleSave,
-    onExport: handleExport,
-    onAnalyze: handleAnalyze,
-    showSave: !!fileHandle,
-    showExport: !!fileData,
-    showAnalyze: showAnalyze && !!fileData,
-    stats,
-  })
+  const { renderControls } = usePathBarPortal()
 
   if (!fileData) {
     return (
@@ -341,6 +331,39 @@ export function CsvViewer() {
 
   return (
     <>
+      {renderControls(
+        <>
+          <div className="stats">
+            <div className="stat">
+              <i className="bi bi-bar-chart-steps"></i>
+              <span>{totalDataRows} rows</span>
+            </div>
+            <div className="stat">
+              <i className="bi bi-columns-gap"></i>
+              <span>{fileData[0]?.length || 0} columns</span>
+            </div>
+          </div>
+          {isModified && (
+            <div className="stat">
+              <i className="bi bi-pencil-square"></i>
+              <span>Modified</span>
+            </div>
+          )}
+          {fileHandle && (
+            <button className="btn btn-primary" onClick={handleSave}>
+              <i className="bi bi-floppy"></i> Save
+            </button>
+          )}
+          <button className="btn btn-success" onClick={handleExport}>
+            <i className="bi bi-download"></i>
+          </button>
+          {showAnalyze && (
+            <button className="btn btn-outline ai-analyze-btn" onClick={handleAnalyze} title="AI Insights">
+              <i className="bi bi-stars"></i>
+            </button>
+          )}
+        </>
+      )}
       <div className="viewer-layout">
         <main className="main-content">
           <div className="table-container" style={{ display: 'flex' }}>

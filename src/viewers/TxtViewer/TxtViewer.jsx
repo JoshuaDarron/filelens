@@ -5,7 +5,8 @@ import hljs from 'highlight.js'
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { useFileLoader } from '../../hooks/useFileLoader'
-import { useHeader } from '../../hooks/useHeader'
+import { usePathBar } from '../../hooks/usePathBar'
+import { usePathBarPortal } from '../../hooks/usePathBarPortal'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile, saveFile } from '../../utils/fileHelpers'
 import { AISidebar } from '../../components/AISidebar/AISidebar'
@@ -366,82 +367,9 @@ export function TxtViewer() {
 
   const showAnalyze = aiEnabled && isAIReady
 
-  const pathBarContent = useMemo(() => {
-    if (fileData == null) return null
-    const linesStat = (
-      <div className="stat">
-        <i className="bi bi-text-left"></i>
-        <span>{lines.length} lines</span>
-      </div>
-    )
-    if (isMarkdown) {
-      return (
-        <>
-          {linesStat}
-          <div className="view-toggle">
-            <button
-              className={`view-toggle-btn ${activeViewMode === 'edit' ? 'active' : ''}`}
-              onClick={() => setViewMode('edit')}
-            >
-              Edit
-            </button>
-            <button
-              className={`view-toggle-btn ${activeViewMode === 'split' ? 'active' : ''}`}
-              onClick={() => setViewMode('split')}
-            >
-              Split
-            </button>
-            <button
-              className={`view-toggle-btn ${activeViewMode === 'preview' ? 'active' : ''}`}
-              onClick={() => setViewMode('preview')}
-            >
-              Preview
-            </button>
-          </div>
-          <button className="btn btn-success" onClick={handleExport}>
-            <i className="bi bi-download"></i>
-          </button>
-        </>
-      )
-    }
-    return (
-      <>
-        {linesStat}
-        <div className="view-toggle">
-          <button
-            className={`view-toggle-btn ${activeViewMode === 'raw' ? 'active' : ''}`}
-            onClick={() => setViewMode('raw')}
-          >
-            View
-          </button>
-          <button
-            className={`view-toggle-btn ${activeViewMode === 'edit' ? 'active' : ''}`}
-            onClick={() => setViewMode('edit')}
-          >
-            Edit
-          </button>
-        </div>
-        <button
-          className={`btn btn-outline ${!wordWrap ? 'active' : ''}`}
-          onClick={() => setWordWrap(!wordWrap)}
-          title="Toggle word wrap"
-        >
-          <i className="bi bi-text-wrap"></i>
-        </button>
-        <button className="btn btn-success" onClick={handleExport}>
-          <i className="bi bi-download"></i> Export
-        </button>
-      </>
-    )
-  }, [fileData, isMarkdown, activeViewMode, wordWrap, handleExport, lines.length])
+  usePathBar({})
 
-  useHeader({
-    onSave: handleSave,
-    onAnalyze: handleAnalyze,
-    showSave: !!fileHandle,
-    showAnalyze: showAnalyze && fileData != null,
-    pathBarContent,
-  })
+  const { renderControls } = usePathBarPortal()
 
   if (fileData == null) {
     return (
@@ -467,8 +395,104 @@ export function TxtViewer() {
     )
   }
 
+  const pathBarControls = isMarkdown ? (
+    <>
+      <div className="stat">
+        <i className="bi bi-text-left"></i>
+        <span>{lines.length} lines</span>
+      </div>
+      {isModified && (
+        <div className="stat">
+          <i className="bi bi-pencil-square"></i>
+          <span>Modified</span>
+        </div>
+      )}
+      <div className="view-toggle">
+        <button
+          className={`view-toggle-btn ${activeViewMode === 'edit' ? 'active' : ''}`}
+          onClick={() => setViewMode('edit')}
+        >
+          Edit
+        </button>
+        <button
+          className={`view-toggle-btn ${activeViewMode === 'split' ? 'active' : ''}`}
+          onClick={() => setViewMode('split')}
+        >
+          Split
+        </button>
+        <button
+          className={`view-toggle-btn ${activeViewMode === 'preview' ? 'active' : ''}`}
+          onClick={() => setViewMode('preview')}
+        >
+          Preview
+        </button>
+      </div>
+      {fileHandle && (
+        <button className="btn btn-primary" onClick={handleSave}>
+          <i className="bi bi-floppy"></i> Save
+        </button>
+      )}
+      <button className="btn btn-success" onClick={handleExport}>
+        <i className="bi bi-download"></i>
+      </button>
+      {showAnalyze && (
+        <button className="btn btn-outline ai-analyze-btn" onClick={handleAnalyze} title="AI Insights">
+          <i className="bi bi-stars"></i>
+        </button>
+      )}
+    </>
+  ) : (
+    <>
+      <div className="stat">
+        <i className="bi bi-text-left"></i>
+        <span>{lines.length} lines</span>
+      </div>
+      {isModified && (
+        <div className="stat">
+          <i className="bi bi-pencil-square"></i>
+          <span>Modified</span>
+        </div>
+      )}
+      <div className="view-toggle">
+        <button
+          className={`view-toggle-btn ${activeViewMode === 'raw' ? 'active' : ''}`}
+          onClick={() => setViewMode('raw')}
+        >
+          View
+        </button>
+        <button
+          className={`view-toggle-btn ${activeViewMode === 'edit' ? 'active' : ''}`}
+          onClick={() => setViewMode('edit')}
+        >
+          Edit
+        </button>
+      </div>
+      <button
+        className="btn btn-outline"
+        onClick={() => setWordWrap(!wordWrap)}
+        title={wordWrap ? 'Disable word wrap' : 'Enable word wrap'}
+      >
+        <i className={`bi ${wordWrap ? 'bi-text-wrap' : 'bi-text-left'}`}></i>
+      </button>
+      {fileHandle && (
+        <button className="btn btn-primary" onClick={handleSave}>
+          <i className="bi bi-floppy"></i> Save
+        </button>
+      )}
+      <button className="btn btn-success" onClick={handleExport}>
+        <i className="bi bi-download"></i>
+      </button>
+      {showAnalyze && (
+        <button className="btn btn-outline ai-analyze-btn" onClick={handleAnalyze} title="AI Insights">
+          <i className="bi bi-stars"></i>
+        </button>
+      )}
+    </>
+  )
+
   return (
     <>
+      {renderControls(pathBarControls)}
       <div className="viewer-layout">
         <main className="main-content">
           {isMarkdown ? (

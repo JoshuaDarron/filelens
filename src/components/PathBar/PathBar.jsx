@@ -1,11 +1,13 @@
 import { memo, useContext, useMemo } from 'react'
-import { HeaderContext } from '../../context/HeaderContext'
+import { PathBarContext } from '../../context/PathBarContext'
+import { PathBarPortalContext } from '../../context/PathBarPortalContext'
 import { Breadcrumb } from '../Breadcrumb/Breadcrumb'
 import './PathBar.css'
 
 export const PathBar = memo(function PathBar() {
-  const { config, callbacksRef } = useContext(HeaderContext)
-  const { visible, breadcrumbItems, pathBarContent } = config
+  const { config, callbacksRef } = useContext(PathBarContext)
+  const { visible, breadcrumbItems } = config
+  const { registerRef } = useContext(PathBarPortalContext)
 
   // Auto-derive breadcrumbs from URL params when breadcrumbItems is not explicitly set
   const autoBreadcrumbs = useMemo(() => {
@@ -46,18 +48,12 @@ export const PathBar = memo(function PathBar() {
   const items = breadcrumbItems || autoBreadcrumbs
   const onNavigate = breadcrumbItems ? callbacksRef.current.breadcrumbOnNavigate : undefined
 
-  if (!items && !pathBarContent) return null
-
-  if (pathBarContent) {
-    return (
-      <div className="browser-path-bar">
-        <Breadcrumb items={items} onNavigate={onNavigate} />
-        <div className="browser-path-controls">
-          {pathBarContent}
-        </div>
-      </div>
-    )
-  }
-
-  return <Breadcrumb items={items} onNavigate={onNavigate} />
+  // Always render the bar structure so the portal target exists
+  // Only hide if there are truly no items and no portal will render
+  return (
+    <div className="browser-path-bar">
+      {items && <Breadcrumb items={items} onNavigate={onNavigate} />}
+      <div className="browser-path-controls" ref={registerRef} />
+    </div>
+  )
 })

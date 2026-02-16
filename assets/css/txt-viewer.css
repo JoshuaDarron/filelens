@@ -42,14 +42,13 @@
 .line-numbers {
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
-  padding: 16px 12px;
-  text-align: right;
+  padding: 16px 10px;
+  text-align: center;
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
   font-size: 13px;
   line-height: 1.6;
   color: var(--text-muted);
   user-select: none;
-  min-width: 50px;
 }
 
 .line-number {
