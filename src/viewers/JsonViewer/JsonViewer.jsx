@@ -337,7 +337,7 @@ export function JsonViewer() {
           <i className="bi bi-clipboard"></i>
         </button>
         <button className="btn btn-success" onClick={handleExport}>
-          <i className="bi bi-download"></i> Export
+          <i className="bi bi-download"></i>
         </button>
       </>
     )

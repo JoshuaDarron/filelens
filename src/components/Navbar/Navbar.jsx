@@ -8,19 +8,23 @@ export const Navbar = memo(function Navbar() {
   const { config, callbacksRef } = useContext(HeaderContext)
   const { visible, showSave, showExport, showAnalyze, stats, toolbarContent } = config
 
-  const parentDirUrl = useMemo(() => {
+  const { parentDirUrl, isSettings } = useMemo(() => {
     const params = new URLSearchParams(window.location.search)
     const fileUrl = params.get('url')
     const type = params.get('type')
-    if (!fileUrl || type === 'directory') return null
+    if (type === 'settings') return { parentDirUrl: null, isSettings: true }
+    if (!fileUrl || type === 'directory') return { parentDirUrl: null, isSettings: false }
     try {
       const parsed = new URL(fileUrl)
-      if (parsed.protocol !== 'file:') return null
+      if (parsed.protocol !== 'file:') return { parentDirUrl: null, isSettings: false }
       const parentPath = parsed.pathname.replace(/\/[^/]+$/, '/')
       const parentUrl = `file://${parentPath}`
-      return `${window.location.pathname}?url=${encodeURIComponent(parentUrl)}&type=directory`
+      return {
+        parentDirUrl: `${window.location.pathname}?url=${encodeURIComponent(parentUrl)}&type=directory`,
+        isSettings: false,
+      }
     } catch {
-      return null
+      return { parentDirUrl: null, isSettings: false }
     }
   }, [])
 
@@ -35,6 +39,15 @@ export const Navbar = memo(function Navbar() {
           <a href={parentDirUrl} className="btn btn-outline back-btn" title="Back to folder">
             <i className="bi bi-arrow-left"></i>
           </a>
+        )}
+        {isSettings && (
+          <button
+            className="btn btn-outline back-btn"
+            title="Back"
+            onClick={() => window.history.length > 1 ? window.history.back() : (window.location.search = '?type=directory')}
+          >
+            <i className="bi bi-arrow-left"></i>
+          </button>
         )}
       </div>
       <div className="header-right">
@@ -79,7 +92,7 @@ export const Navbar = memo(function Navbar() {
         )}
         {showExport && (
           <button className="btn btn-success" onClick={() => callbacksRef.current.onExport?.()}>
-            <i className="bi bi-download"></i> Export
+            <i className="bi bi-download"></i>
           </button>
         )}
         {toolbarContent}

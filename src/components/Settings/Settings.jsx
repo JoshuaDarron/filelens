@@ -42,15 +42,7 @@ export function Settings() {
   const { embeddingStatus, loadEmbeddingModel, detectCapabilities, llmStatus, isLLMReady } = useAI()
   const [storageBytes, setStorageBytes] = useState(getStorageUsage)
 
-  useHeader({ visible: false })
-
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      window.history.back()
-    } else {
-      window.location.search = '?type=directory'
-    }
-  }
+  useHeader({})
 
   const handleClearData = useCallback(() => {
     const currentTheme = themePreference
@@ -63,12 +55,6 @@ export function Settings() {
 
   return (
     <div className="settings-page">
-      <header className="settings-header">
-        <button className="btn btn-outline settings-back-btn" onClick={handleBack}>
-          <i className="bi bi-arrow-left"></i>
-        </button>
-      </header>
-
       <div className="settings-body">
         {/* Appearance */}
         <section className="settings-section">
