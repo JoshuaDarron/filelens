@@ -12,8 +12,8 @@
   border-bottom: 1px solid var(--border-color);
 }
 
-/* When inside the path bar, breadcrumb is inline — no standalone background/border */
-.browser-path-bar > .breadcrumb {
+/* When inside the options header, breadcrumb is inline — no standalone background/border */
+.options-header > .breadcrumb {
   background: none;
   border-bottom: none;
 }

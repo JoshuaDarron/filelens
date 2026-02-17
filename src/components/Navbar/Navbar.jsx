@@ -23,8 +23,8 @@ export const Navbar = memo(function Navbar() {
   }, [])
 
   return (
-    <header className="header">
-      <div className="header-left">
+    <header className="navbar">
+      <div className="navbar-left">
         {parentDirUrl && (
           <a href={parentDirUrl} className="btn btn-outline back-btn" title="Back to folder">
             <i className="bi bi-arrow-left"></i>
@@ -40,7 +40,7 @@ export const Navbar = memo(function Navbar() {
           </button>
         )}
       </div>
-      <div className="header-right">
+      <div className="navbar-right">
         <a
           href={`${window.location.pathname}?type=settings`}
           className="btn btn-outline settings-gear-btn"

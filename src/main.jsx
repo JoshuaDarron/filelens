@@ -6,8 +6,8 @@ import { ThemeProvider } from './context/ThemeContext'
 import { ToastProvider } from './context/ToastContext'
 import { FileProvider } from './context/FileContext'
 import { AIProvider } from './context/AIContext'
-import { PathBarProvider } from './context/PathBarContext'
-import { PathBarPortalProvider } from './context/PathBarPortalContext'
+import { OptionsHeaderProvider } from './context/OptionsHeaderContext'
+import { OptionsHeaderPortalProvider } from './context/OptionsHeaderPortalContext'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -16,11 +16,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <ToastProvider>
           <AIProvider>
             <FileProvider>
-              <PathBarProvider>
-                <PathBarPortalProvider>
+              <OptionsHeaderProvider>
+                <OptionsHeaderPortalProvider>
                   <App />
-                </PathBarPortalProvider>
-              </PathBarProvider>
+                </OptionsHeaderPortalProvider>
+              </OptionsHeaderProvider>
             </FileProvider>
           </AIProvider>
         </ToastProvider>

@@ -1,6 +1,6 @@
-/* PathBar Component Styles */
+/* OptionsHeader Component Styles */
 
-.browser-path-bar {
+.options-header {
   display: flex;
   align-items: center;
   background: var(--bg-accent);
@@ -9,7 +9,7 @@
   padding-right: 12px;
 }
 
-.browser-path-controls {
+.options-header-controls {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -18,17 +18,17 @@
 }
 
 @media (max-width: 768px) {
-  .browser-path-bar {
+  .options-header {
     flex-wrap: wrap;
     padding-right: 8px;
   }
 
-  .browser-path-bar > .breadcrumb {
+  .options-header > .breadcrumb {
     flex: 1 1 100%;
     border-bottom: 1px solid var(--border-color);
   }
 
-  .browser-path-controls {
+  .options-header-controls {
     padding: 8px 4px;
   }
 }

@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useToast } from '../../hooks/useToast'
-import { usePathBar } from '../../hooks/usePathBar'
-import { usePathBarPortal } from '../../hooks/usePathBarPortal'
+import { useOptionsHeader } from '../../hooks/useOptionsHeader'
+import { useOptionsHeaderPortal } from '../../hooks/useOptionsHeaderPortal'
 import { formatFileSize } from '../../utils/fileHelpers'
 import { AISidebar } from '../../components/AISidebar/AISidebar'
 import { DirectorySearchView } from '../../components/AISidebar/DirectorySearchView'
@@ -551,12 +551,12 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
 
   const showAnalyze = aiEnabled && isAIReady
 
-  usePathBar({
+  useOptionsHeader({
     breadcrumbItems: currentPath,
     breadcrumbOnNavigate: navigateToBreadcrumb,
   })
 
-  const { renderControls } = usePathBarPortal()
+  const { renderControls } = useOptionsHeaderPortal()
 
   return (
     <>

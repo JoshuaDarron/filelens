@@ -1,8 +1,8 @@
 import { createContext, useState, useCallback, useMemo } from 'react'
 
-export const PathBarPortalContext = createContext()
+export const OptionsHeaderPortalContext = createContext()
 
-export function PathBarPortalProvider({ children }) {
+export function OptionsHeaderPortalProvider({ children }) {
   const [portalTarget, setPortalTarget] = useState(null)
 
   const registerRef = useCallback((node) => {
@@ -14,8 +14,8 @@ export function PathBarPortalProvider({ children }) {
   }), [portalTarget, registerRef])
 
   return (
-    <PathBarPortalContext.Provider value={value}>
+    <OptionsHeaderPortalContext.Provider value={value}>
       {children}
-    </PathBarPortalContext.Provider>
+    </OptionsHeaderPortalContext.Provider>
   )
 }

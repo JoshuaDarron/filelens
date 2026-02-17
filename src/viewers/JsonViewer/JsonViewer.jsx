@@ -2,8 +2,8 @@ import { useContext, useEffect, useCallback, useState, useMemo, useRef, memo } f
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { useFileLoader } from '../../hooks/useFileLoader'
-import { usePathBar } from '../../hooks/usePathBar'
-import { usePathBarPortal } from '../../hooks/usePathBarPortal'
+import { useOptionsHeader } from '../../hooks/useOptionsHeader'
+import { useOptionsHeaderPortal } from '../../hooks/useOptionsHeaderPortal'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile } from '../../utils/fileHelpers'
 import { AISidebar } from '../../components/AISidebar/AISidebar'
@@ -306,9 +306,9 @@ export function JsonViewer() {
     return null
   }, [fileData])
 
-  usePathBar({})
+  useOptionsHeader({})
 
-  const { renderControls } = usePathBarPortal()
+  const { renderControls } = useOptionsHeaderPortal()
 
   if (!fileData) {
     return (

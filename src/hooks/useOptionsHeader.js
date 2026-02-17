@@ -1,8 +1,8 @@
 import { useContext, useLayoutEffect, useRef } from 'react'
-import { PathBarContext } from '../context/PathBarContext'
+import { OptionsHeaderContext } from '../context/OptionsHeaderContext'
 
-export function usePathBar(config = {}) {
-  const { setPathBarConfig, callbacksRef } = useContext(PathBarContext)
+export function useOptionsHeader(config = {}) {
+  const { setOptionsHeaderConfig, callbacksRef } = useContext(OptionsHeaderContext)
   const prevConfigRef = useRef(null)
 
   // Sync callbacks to ref on every render (always current, never stale)
@@ -27,6 +27,6 @@ export function usePathBar(config = {}) {
       return
     }
     prevConfigRef.current = displayConfig
-    setPathBarConfig(displayConfig)
-  }, [visible, breadcrumbItems, setPathBarConfig])
+    setOptionsHeaderConfig(displayConfig)
+  }, [visible, breadcrumbItems, setOptionsHeaderConfig])
 }

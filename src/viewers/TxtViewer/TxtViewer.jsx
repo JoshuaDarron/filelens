@@ -5,8 +5,8 @@ import hljs from 'highlight.js'
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { useFileLoader } from '../../hooks/useFileLoader'
-import { usePathBar } from '../../hooks/usePathBar'
-import { usePathBarPortal } from '../../hooks/usePathBarPortal'
+import { useOptionsHeader } from '../../hooks/useOptionsHeader'
+import { useOptionsHeaderPortal } from '../../hooks/useOptionsHeaderPortal'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile, saveFile } from '../../utils/fileHelpers'
 import { AISidebar } from '../../components/AISidebar/AISidebar'
@@ -367,9 +367,9 @@ export function TxtViewer() {
 
   const showAnalyze = aiEnabled && isAIReady
 
-  usePathBar({})
+  useOptionsHeader({})
 
-  const { renderControls } = usePathBarPortal()
+  const { renderControls } = useOptionsHeaderPortal()
 
   if (fileData == null) {
     return (

@@ -3,8 +3,8 @@ import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { usePagination } from '../../hooks/usePagination'
 import { useFileLoader } from '../../hooks/useFileLoader'
-import { usePathBar } from '../../hooks/usePathBar'
-import { usePathBarPortal } from '../../hooks/usePathBarPortal'
+import { useOptionsHeader } from '../../hooks/useOptionsHeader'
+import { useOptionsHeaderPortal } from '../../hooks/useOptionsHeaderPortal'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { Pagination } from '../../components/Pagination/Pagination'
 import { CsvTable } from './CsvTable'
@@ -301,9 +301,9 @@ export function CsvViewer() {
 
   const showAnalyze = aiEnabled && isAIReady
 
-  usePathBar({})
+  useOptionsHeader({})
 
-  const { renderControls } = usePathBarPortal()
+  const { renderControls } = useOptionsHeaderPortal()
 
   if (!fileData) {
     return (

@@ -1,7 +1,12 @@
 // LLM service — main-thread API for WebLLM
 // Offloads model inference to a Web Worker
 
-import { CreateWebWorkerMLCEngine, hasModelInCache, deleteModelInCache, prebuiltAppConfig } from '@mlc-ai/web-llm'
+// Lazy-load @mlc-ai/web-llm to keep it out of the critical render path (~5.4MB)
+let _webllm = null
+async function getWebLLM() {
+  if (!_webllm) _webllm = await import('@mlc-ai/web-llm')
+  return _webllm
+}
 
 let engine = null
 let currentModelId = null
@@ -73,6 +78,7 @@ export async function checkLLMAvailability() {
 
 export async function isModelCached(modelId) {
   try {
+    const { hasModelInCache } = await getWebLLM()
     return await hasModelInCache(modelId)
   } catch {
     return false
@@ -92,6 +98,8 @@ export async function loadLLM(modelId, onProgress) {
   }
 
   try {
+    const { CreateWebWorkerMLCEngine } = await getWebLLM()
+
     const worker = new Worker(
       new URL('./llm.worker.js', import.meta.url),
       { type: 'module' }
@@ -153,6 +161,7 @@ export async function clearLLMCache(modelId) {
       engine = null
       currentModelId = null
     }
+    const { deleteModelInCache } = await getWebLLM()
     await deleteModelInCache(modelId)
     return { success: true }
   } catch (error) {
@@ -167,6 +176,7 @@ export async function clearAllLLMCache() {
     currentModelId = null
   }
 
+  const { hasModelInCache, deleteModelInCache } = await getWebLLM()
   const results = []
   for (const model of AVAILABLE_MODELS) {
     try {

@@ -24,7 +24,10 @@ assets/css/
 └── viewer.css          # Legacy import file (imports shared + csv-viewer)
 
 src/components/
-├── Header/             # Header.jsx + Header.css
+├── Navbar/             # Navbar.jsx + Navbar.css (back button + settings gear)
+├── OptionsHeader/      # OptionsHeader.jsx + OptionsHeader.css (breadcrumbs + viewer controls portal)
+├── ViewContainer/      # ViewContainer.jsx (viewer routing, lazy loading, Suspense)
+├── Settings/           # Settings.jsx + Settings.css
 ├── ThemeToggle/        # ThemeToggle.jsx + ThemeToggle.css
 ├── Toast/              # Toast.jsx, ToastContainer.jsx + Toast.css
 ├── Breadcrumb/         # Breadcrumb.jsx + Breadcrumb.css
@@ -32,6 +35,33 @@ src/components/
 ├── DropZone/           # DropZone.jsx + DropZone.css
 ├── Pagination/         # Pagination.jsx + Pagination.css
 └── FileInput/          # FileInput.jsx (no CSS — uses global .btn classes)
+```
+
+### Component Tree
+
+```
+App                         — Static shell, never re-renders
+├── ToastContainer          — Overlay
+├── Navbar                  — memo(), computes back target once on mount
+└── ViewContainer           — Consumes FileRoutingContext (re-renders only on file type change)
+    ├── OptionsHeader       — memo(), breadcrumbs + portal controls (hidden for Settings)
+    └── Suspense
+        └── Active viewer   — CsvViewer | JsonViewer | TxtViewer | FileBrowser | Settings
+```
+
+### Context Architecture
+
+```
+SettingsProvider             — User preferences (localStorage)
+  ThemeProvider              — Theme state, applies data-theme attribute
+    ToastProvider            — Toast notifications
+      AIProvider             — AI model management
+        FileProvider         — Provides both:
+        │ FileRoutingContext — fileType + stable routing utils (changes rarely)
+        │ FileContext        — Full file data + setters (changes on edits)
+          OptionsHeaderProvider  — Breadcrumb config + visibility
+            OptionsHeaderPortalProvider — Portal target for viewer controls
+              App
 ```
 
 ### Theme System
@@ -54,11 +84,11 @@ filelens/
 ├── manifest.json           # Chrome extension manifest v3
 ├── viewer.html             # CSV viewer page
 ├── src/
-│   ├── App.jsx             # Main app component
+│   ├── App.jsx             # Static shell: ToastContainer + Navbar + ViewContainer
 │   ├── components/         # Shared UI components (see CSS Architecture)
 │   ├── viewers/            # Viewer implementations (CsvViewer, JsonViewer, etc.)
-│   ├── context/            # React contexts
-│   ├── hooks/              # Custom hooks
+│   ├── context/            # React contexts (FileContext, OptionsHeaderContext, etc.)
+│   ├── hooks/              # Custom hooks (useOptionsHeader, useOptionsHeaderPortal, etc.)
 │   └── utils/              # Utility functions
 ├── assets/
 │   ├── css/               # Global & viewer-specific stylesheets

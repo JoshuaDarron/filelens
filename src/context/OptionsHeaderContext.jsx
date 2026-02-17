@@ -5,13 +5,13 @@ const defaultConfig = {
   breadcrumbItems: null,
 }
 
-export const PathBarContext = createContext()
+export const OptionsHeaderContext = createContext()
 
-export function PathBarProvider({ children }) {
+export function OptionsHeaderProvider({ children }) {
   const [config, setConfig] = useState(defaultConfig)
   const callbacksRef = useRef({ breadcrumbOnNavigate: null })
 
-  const setPathBarConfig = useCallback((newConfig) => {
+  const setOptionsHeaderConfig = useCallback((newConfig) => {
     const { breadcrumbOnNavigate, ...displayConfig } = newConfig
 
     if (breadcrumbOnNavigate !== undefined) callbacksRef.current.breadcrumbOnNavigate = breadcrumbOnNavigate
@@ -28,18 +28,18 @@ export function PathBarProvider({ children }) {
     })
   }, [])
 
-  const resetPathBar = useCallback(() => {
+  const resetOptionsHeader = useCallback(() => {
     callbacksRef.current = { breadcrumbOnNavigate: null }
     setConfig(defaultConfig)
   }, [])
 
   const value = useMemo(() => ({
-    config, callbacksRef, setPathBarConfig, resetPathBar
-  }), [config, setPathBarConfig, resetPathBar])
+    config, callbacksRef, setOptionsHeaderConfig, resetOptionsHeader
+  }), [config, setOptionsHeaderConfig, resetOptionsHeader])
 
   return (
-    <PathBarContext.Provider value={value}>
+    <OptionsHeaderContext.Provider value={value}>
       {children}
-    </PathBarContext.Provider>
+    </OptionsHeaderContext.Provider>
   )
 }

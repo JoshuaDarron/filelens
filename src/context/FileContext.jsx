@@ -1,6 +1,7 @@
 import { createContext, useState, useCallback, useMemo } from 'react'
 
 export const FileContext = createContext(null)
+export const FileRoutingContext = createContext(null)
 
 export function FileProvider({ children }) {
   const [fileData, setFileData] = useState(null)
@@ -58,6 +59,12 @@ export function FileProvider({ children }) {
     }
   }, [])
 
+  const routingValue = useMemo(() => ({
+    fileType,
+    detectFileType,
+    loadFile
+  }), [fileType, detectFileType, loadFile])
+
   const value = useMemo(() => ({
     fileData,
     originalData,
@@ -82,8 +89,10 @@ export function FileProvider({ children }) {
   }), [fileData, originalData, filename, fileType, isModified, fileHandle, fileUrl, isLoading, resetFile, loadFile, updateData, markSaved, detectFileType])
 
   return (
-    <FileContext.Provider value={value}>
-      {children}
-    </FileContext.Provider>
+    <FileRoutingContext.Provider value={routingValue}>
+      <FileContext.Provider value={value}>
+        {children}
+      </FileContext.Provider>
+    </FileRoutingContext.Provider>
   )
 }
