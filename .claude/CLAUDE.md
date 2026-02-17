@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-FileLens - A Chrome extension for viewing and editing various file types (CSV, JSON, TXT) with AI-powered features.
+FileLens - A Chrome extension for viewing and editing various file types (CSV, JSON, TXT).
 
 ## CSS Architecture
 
@@ -55,8 +55,7 @@ App                         — Static shell, never re-renders
 SettingsProvider             — User preferences (localStorage)
   ThemeProvider              — Theme state, applies data-theme attribute
     ToastProvider            — Toast notifications
-      AIProvider             — AI model management
-        FileProvider         — Provides both:
+      FileProvider         — Provides both:
         │ FileRoutingContext — fileType + stable routing utils (changes rarely)
         │ FileContext        — Full file data + setters (changes on edits)
           OptionsHeaderProvider  — Breadcrumb config + visibility

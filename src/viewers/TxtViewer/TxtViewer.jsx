@@ -9,13 +9,6 @@ import { useOptionsHeader } from '../../hooks/useOptionsHeader'
 import { useOptionsHeaderPortal } from '../../hooks/useOptionsHeaderPortal'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile, saveFile } from '../../utils/fileHelpers'
-import { AISidebar } from '../../components/AISidebar/AISidebar'
-import { SemanticSearchView } from '../../components/AISidebar/SemanticSearchView'
-import { InsightsView } from '../../components/AISidebar/InsightsView'
-import { useAISidebar } from '../../hooks/useAISidebar'
-import { useAI } from '../../hooks/useAI'
-import { useAISettings } from '../../hooks/useAISettings'
-import { useSearchIndex } from '../../hooks/useSearchIndex'
 
 const EXT_TO_LANG = {
   jsx: 'javascript',
@@ -75,19 +68,7 @@ export function TxtViewer() {
 
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
-  const { aiEnabled } = useAISettings()
-  const { isAIReady } = useAI()
-  const aiSidebar = useAISidebar()
-  const searchIndex = useSearchIndex(fileData, fileType, aiSidebar.isSidebarOpen)
   const [viewMode, setViewMode] = useState(null)
-
-  useEffect(() => {
-    aiSidebar.closeSidebar()
-  }, [viewMode]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleAnalyze = useCallback(() => {
-    aiSidebar.toggleSidebar()
-  }, [aiSidebar.toggleSidebar])
 
   // null until file loads; 'edit' | 'split' | 'preview' for md, 'raw' for txt
   const [wordWrap, setWordWrap] = useState(true)
@@ -100,30 +81,6 @@ export function TxtViewer() {
   const activeViewMode = isMarkdown
     ? (['edit', 'split', 'preview'].includes(viewMode) ? viewMode : 'split')
     : (['raw', 'edit'].includes(viewMode) ? viewMode : 'raw')
-
-  const handleSearchResultClick = useCallback((result) => {
-    if (result.lineIndex == null) return
-
-    if (viewMode === 'edit' || (isMarkdown && viewMode === 'split')) {
-      // Scroll textarea to the target line
-      const textarea = editorRef.current
-      if (!textarea) return
-      const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || 20
-      const scrollTop = result.lineIndex * lineHeight - textarea.clientHeight / 2
-      textarea.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' })
-    } else {
-      // In view/raw/preview modes, target the line elements
-      const txtLineEl = document.querySelector(`.txt-content .txt-line:nth-child(${result.lineIndex + 1})`)
-      const lineNumberEl = document.querySelector(`.line-numbers .line-number:nth-child(${result.lineIndex + 1})`)
-      const target = txtLineEl || lineNumberEl
-      if (!target) return
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      target.classList.remove('ai-search-highlight')
-      void target.offsetWidth
-      target.classList.add('ai-search-highlight')
-      setTimeout(() => target.classList.remove('ai-search-highlight'), 2000)
-    }
-  }, [viewMode, isMarkdown])
 
   // Synchronous scrolling for split mode
   const editorRef = useRef(null)
@@ -365,8 +322,6 @@ export function TxtViewer() {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const showAnalyze = aiEnabled && isAIReady
-
   useOptionsHeader({})
 
   const { renderControls } = useOptionsHeaderPortal()
@@ -435,11 +390,6 @@ export function TxtViewer() {
       <button className="btn btn-success" onClick={handleExport}>
         <i className="bi bi-download"></i>
       </button>
-      {showAnalyze && (
-        <button className="btn btn-outline ai-analyze-btn" onClick={handleAnalyze} title="AI Insights">
-          <i className="bi bi-stars"></i>
-        </button>
-      )}
     </>
   ) : (
     <>
@@ -482,11 +432,6 @@ export function TxtViewer() {
       <button className="btn btn-success" onClick={handleExport}>
         <i className="bi bi-download"></i>
       </button>
-      {showAnalyze && (
-        <button className="btn btn-outline ai-analyze-btn" onClick={handleAnalyze} title="AI Insights">
-          <i className="bi bi-stars"></i>
-        </button>
-      )}
     </>
   )
 
@@ -576,15 +521,6 @@ export function TxtViewer() {
             </div>
           )}
         </main>
-        {showAnalyze && (
-          <AISidebar
-            isOpen={aiSidebar.isSidebarOpen}
-            onClose={aiSidebar.closeSidebar}
-            insightsContent={<InsightsView fileData={fileData} fileType={fileType} filename={filename} />}
-          >
-            <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
-          </AISidebar>
-        )}
       </div>
     </>
   )

@@ -96,9 +96,6 @@ if (process.env.ANALYZE) {
 export default defineConfig({
   plugins,
   base: './',
-  optimizeDeps: {
-    exclude: ['@xenova/transformers', '@mlc-ai/web-llm']
-  },
   test: {
     globals: true,
     environment: 'jsdom',
@@ -121,12 +118,6 @@ export default defineConfig({
           }
           if (id.includes('node_modules/marked') || id.includes('node_modules/highlight.js')) {
             return 'vendor-markdown'
-          }
-          if (id.includes('node_modules/@xenova/transformers') || id.includes('node_modules/onnxruntime')) {
-            return 'vendor-ai'
-          }
-          if (id.includes('node_modules/@mlc-ai/web-llm')) {
-            return 'vendor-llm'
           }
         }
       }

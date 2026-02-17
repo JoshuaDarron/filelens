@@ -1,4 +1,4 @@
-import { useContext, useEffect, useCallback, useMemo } from 'react'
+import { useContext, useEffect, useCallback } from 'react'
 import { FileContext } from '../../context/FileContext'
 import { useToast } from '../../hooks/useToast'
 import { usePagination } from '../../hooks/usePagination'
@@ -10,13 +10,6 @@ import { Pagination } from '../../components/Pagination/Pagination'
 import { CsvTable } from './CsvTable'
 import { parseCSV, generateCSVContent, createDefaultCSV, validateCSVData } from '../../utils/csvParser'
 import { saveFile, downloadFile } from '../../utils/fileHelpers'
-import { AISidebar } from '../../components/AISidebar/AISidebar'
-import { SemanticSearchView } from '../../components/AISidebar/SemanticSearchView'
-import { InsightsView } from '../../components/AISidebar/InsightsView'
-import { useAISidebar } from '../../hooks/useAISidebar'
-import { useAI } from '../../hooks/useAI'
-import { useAISettings } from '../../hooks/useAISettings'
-import { useSearchIndex } from '../../hooks/useSearchIndex'
 
 export function CsvViewer() {
   const {
@@ -34,14 +27,6 @@ export function CsvViewer() {
 
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
-  const { aiEnabled } = useAISettings()
-  const { isAIReady } = useAI()
-  const sidebar = useAISidebar()
-  const searchIndex = useSearchIndex(fileData, 'csv', sidebar.isSidebarOpen)
-
-  const handleAnalyze = useCallback(() => {
-    sidebar.toggleSidebar()
-  }, [sidebar.toggleSidebar])
 
   // Prevent page-level scroll when data is loaded (grid handles its own scroll)
   useEffect(() => {
@@ -52,34 +37,6 @@ export function CsvViewer() {
 
   const totalDataRows = fileData ? fileData.length - 1 : 0
   const pagination = usePagination(totalDataRows)
-
-  const handleSearchResultClick = useCallback((result) => {
-    if (result.rowIndex == null) return
-
-    const dataRowIndex = result.rowIndex - 1 // 0-based data row
-    const targetPage = Math.floor(dataRowIndex / pagination.rowsPerPage) + 1
-
-    const scrollAndHighlight = () => {
-      requestAnimationFrame(() => {
-        const rowInPage = dataRowIndex - (targetPage - 1) * pagination.rowsPerPage
-        const row = document.querySelector(`#csvTable tbody tr:nth-child(${rowInPage + 1})`)
-        if (!row) return
-        row.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        row.classList.remove('ai-search-highlight')
-        void row.offsetWidth
-        row.classList.add('ai-search-highlight')
-        setTimeout(() => row.classList.remove('ai-search-highlight'), 2000)
-      })
-    }
-
-    if (targetPage !== pagination.currentPage) {
-      pagination.goToPage(targetPage)
-      // Double-rAF: wait for React render + browser paint after page change
-      requestAnimationFrame(() => requestAnimationFrame(scrollAndHighlight))
-    } else {
-      scrollAndHighlight()
-    }
-  }, [pagination])
 
   const processCSVText = useCallback((text, fname, handle = null, url = null) => {
     try {
@@ -299,8 +256,6 @@ export function CsvViewer() {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const showAnalyze = aiEnabled && isAIReady
-
   useOptionsHeader({})
 
   const { renderControls } = useOptionsHeaderPortal()
@@ -357,11 +312,6 @@ export function CsvViewer() {
           <button className="btn btn-success" onClick={handleExport}>
             <i className="bi bi-download"></i>
           </button>
-          {showAnalyze && (
-            <button className="btn btn-outline ai-analyze-btn" onClick={handleAnalyze} title="AI Insights">
-              <i className="bi bi-stars"></i>
-            </button>
-          )}
         </>
       )}
       <div className="viewer-layout">
@@ -389,15 +339,6 @@ export function CsvViewer() {
             />
           </div>
         </main>
-        {showAnalyze && (
-          <AISidebar
-            isOpen={sidebar.isSidebarOpen}
-            onClose={sidebar.closeSidebar}
-            insightsContent={<InsightsView fileData={fileData} fileType="csv" filename={filename} />}
-          >
-            <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
-          </AISidebar>
-        )}
       </div>
     </>
   )

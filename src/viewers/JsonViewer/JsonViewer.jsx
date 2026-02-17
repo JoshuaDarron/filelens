@@ -6,13 +6,6 @@ import { useOptionsHeader } from '../../hooks/useOptionsHeader'
 import { useOptionsHeaderPortal } from '../../hooks/useOptionsHeaderPortal'
 import { EmptyState } from '../../components/EmptyState/EmptyState'
 import { downloadFile } from '../../utils/fileHelpers'
-import { AISidebar } from '../../components/AISidebar/AISidebar'
-import { SemanticSearchView } from '../../components/AISidebar/SemanticSearchView'
-import { InsightsView } from '../../components/AISidebar/InsightsView'
-import { useAISidebar } from '../../hooks/useAISidebar'
-import { useAI } from '../../hooks/useAI'
-import { useAISettings } from '../../hooks/useAISettings'
-import { useSearchIndex } from '../../hooks/useSearchIndex'
 
 const JsonNode = memo(function JsonNode({ data, path = '', level = 0, collapsed = false }) {
   const [isCollapsed, setIsCollapsed] = useState(collapsed && level > 2)
@@ -109,61 +102,10 @@ export function JsonViewer() {
 
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
-  const { aiEnabled } = useAISettings()
-  const { isAIReady } = useAI()
-  const sidebar = useAISidebar()
-  const searchIndex = useSearchIndex(fileData, 'json', sidebar.isSidebarOpen)
   const [viewMode, setViewMode] = useState('tree') // 'tree' or 'raw'
   const [rawText, setRawText] = useState('')
   const rawPreRef = useRef(null)
   const rawLines = useMemo(() => rawText ? rawText.split('\n') : [], [rawText])
-
-  useEffect(() => {
-    sidebar.closeSidebar()
-  }, [viewMode]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleAnalyze = useCallback(() => {
-    sidebar.toggleSidebar()
-  }, [sidebar.toggleSidebar])
-
-  const handleSearchResultClick = useCallback((result) => {
-    if (!result.text || !rawText) return
-
-    const searchKey = result.text.split(':')[0]?.trim().replace(/"/g, '')
-
-    if (viewMode === 'tree') {
-      // Find matching key in the tree DOM
-      if (!searchKey) return
-      const keyEls = document.querySelectorAll('.json-key')
-      const target = Array.from(keyEls).find(el => el.textContent === `"${searchKey}"`)
-      if (!target) return
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      target.classList.remove('ai-search-highlight')
-      void target.offsetWidth
-      target.classList.add('ai-search-highlight')
-      setTimeout(() => target.classList.remove('ai-search-highlight'), 2000)
-    } else {
-      // Raw view — find the matching line and highlight it
-      const lines = rawText.split('\n')
-      let targetLine = -1
-      if (searchKey) {
-        targetLine = lines.findIndex(line => line.includes(`"${searchKey}"`))
-      }
-      if (targetLine === -1) {
-        const fragment = result.text.slice(0, 40)
-        targetLine = lines.findIndex(line => line.includes(fragment))
-      }
-      if (targetLine === -1) return
-
-      const lineEl = document.querySelector(`.line-numbers .line-number:nth-child(${targetLine + 1})`)
-      if (!lineEl) return
-      lineEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      lineEl.classList.remove('ai-search-highlight')
-      void lineEl.offsetWidth
-      lineEl.classList.add('ai-search-highlight')
-      setTimeout(() => lineEl.classList.remove('ai-search-highlight'), 2000)
-    }
-  }, [viewMode, rawText])
 
   const processJSONText = useCallback((text, fname, handle = null, url = null) => {
     try {
@@ -297,8 +239,6 @@ export function JsonViewer() {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const showAnalyze = aiEnabled && isAIReady
-
   const statsLabel = useMemo(() => {
     if (!fileData) return null
     if (Array.isArray(fileData)) return `${fileData.length} items`
@@ -370,11 +310,6 @@ export function JsonViewer() {
           <button className="btn btn-success" onClick={handleExport}>
             <i className="bi bi-download"></i>
           </button>
-          {showAnalyze && !!fileData && (
-            <button className="btn btn-outline ai-analyze-btn" onClick={handleAnalyze} title="AI Insights">
-              <i className="bi bi-stars"></i>
-            </button>
-          )}
         </>
       )}
       <div className="viewer-layout">
@@ -403,15 +338,6 @@ export function JsonViewer() {
             )}
           </div>
         </main>
-        {showAnalyze && (
-          <AISidebar
-            isOpen={sidebar.isSidebarOpen}
-            onClose={sidebar.closeSidebar}
-            insightsContent={<InsightsView fileData={fileData} fileType="json" filename={filename} />}
-          >
-            <SemanticSearchView index={searchIndex.index} indexing={searchIndex.indexing} indexProgress={searchIndex.indexProgress} indexError={searchIndex.error} onResultClick={handleSearchResultClick} />
-          </AISidebar>
-        )}
       </div>
     </>
   )

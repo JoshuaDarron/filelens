@@ -4,7 +4,6 @@ const STORAGE_KEY = 'filelens-settings'
 
 const defaultSettings = {
   theme: 'system',
-  aiEnabled: false,
 }
 
 function loadSettings() {

@@ -5,7 +5,6 @@ import { SettingsProvider } from './context/SettingsContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { ToastProvider } from './context/ToastContext'
 import { FileProvider } from './context/FileContext'
-import { AIProvider } from './context/AIContext'
 import { OptionsHeaderProvider } from './context/OptionsHeaderContext'
 import { OptionsHeaderPortalProvider } from './context/OptionsHeaderPortalContext'
 
@@ -14,15 +13,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <SettingsProvider>
       <ThemeProvider>
         <ToastProvider>
-          <AIProvider>
-            <FileProvider>
-              <OptionsHeaderProvider>
-                <OptionsHeaderPortalProvider>
-                  <App />
-                </OptionsHeaderPortalProvider>
-              </OptionsHeaderProvider>
-            </FileProvider>
-          </AIProvider>
+          <FileProvider>
+            <OptionsHeaderProvider>
+              <OptionsHeaderPortalProvider>
+                <App />
+              </OptionsHeaderPortalProvider>
+            </OptionsHeaderProvider>
+          </FileProvider>
         </ToastProvider>
       </ThemeProvider>
     </SettingsProvider>

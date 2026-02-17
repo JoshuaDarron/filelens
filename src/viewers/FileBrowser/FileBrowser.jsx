@@ -3,11 +3,6 @@ import { useToast } from '../../hooks/useToast'
 import { useOptionsHeader } from '../../hooks/useOptionsHeader'
 import { useOptionsHeaderPortal } from '../../hooks/useOptionsHeaderPortal'
 import { formatFileSize } from '../../utils/fileHelpers'
-import { AISidebar } from '../../components/AISidebar/AISidebar'
-import { DirectorySearchView } from '../../components/AISidebar/DirectorySearchView'
-import { useAISidebar } from '../../hooks/useAISidebar'
-import { useAI } from '../../hooks/useAI'
-import { useAISettings } from '../../hooks/useAISettings'
 
 // Parse Chrome's directory listing HTML to extract file entries
 function parseDirectoryListing(html, baseUrl) {
@@ -95,9 +90,6 @@ function buildBreadcrumbsFromUrl(dirUrl) {
 
 export function FileBrowser({ onFileSelect, dirUrl }) {
   const toast = useToast()
-  const { aiEnabled } = useAISettings()
-  const { isAIReady } = useAI()
-  const sidebar = useAISidebar()
   const [files, setFiles] = useState([])
   const [currentPath, setCurrentPath] = useState([])
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('fileBrowser-viewMode') || 'list') // 'list' or 'grid'
@@ -347,8 +339,6 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
   }, [currentPath, isUrlMode, navigateToDirectoryUrl, toast])
 
   const handleFileClick = useCallback(async (file) => {
-    sidebar.closeSidebar()
-
     if (file.kind === 'directory') {
       if (isUrlMode && file.url) {
         navigateToDirectoryUrl(file.url)
@@ -377,7 +367,7 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
     } else {
       toast.info(`File type .${ext} is not supported yet`)
     }
-  }, [isUrlMode, navigateToDirectoryUrl, navigateToFolder, onFileSelect, toast, sidebar.closeSidebar])
+  }, [isUrlMode, navigateToDirectoryUrl, navigateToFolder, onFileSelect, toast])
 
   const formatDate = (timestamp) => {
     if (!timestamp) return '-'
@@ -545,12 +535,6 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
   // Clear search when navigating
   const clearSearch = () => setSearchQuery('')
 
-  const handleAnalyze = useCallback(() => {
-    sidebar.toggleSidebar()
-  }, [sidebar.toggleSidebar])
-
-  const showAnalyze = aiEnabled && isAIReady
-
   useOptionsHeader({
     breadcrumbItems: currentPath,
     breadcrumbOnNavigate: navigateToBreadcrumb,
@@ -617,11 +601,6 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
               </button>
             )}
           </div>
-          {showAnalyze && (
-            <button className="btn btn-outline ai-analyze-btn" onClick={handleAnalyze} title="AI Insights">
-              <i className="bi bi-stars"></i>
-            </button>
-          )}
         </>
       )}
       <div className="viewer-layout">
@@ -730,14 +709,6 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
           )}
         </div>
       </main>
-      {showAnalyze && (
-        <AISidebar
-          isOpen={sidebar.isSidebarOpen}
-          onClose={sidebar.closeSidebar}
-        >
-          <DirectorySearchView files={files} />
-        </AISidebar>
-      )}
       </div>
     </>
   )

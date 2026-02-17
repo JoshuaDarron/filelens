@@ -1,10 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useTheme } from '../../hooks/useTheme'
 import { useToast } from '../../hooks/useToast'
-import { useAISettings } from '../../hooks/useAISettings'
-import { useAI } from '../../hooks/useAI'
-import { clearModelCache } from '../../services/ai/embeddingService'
-import { clearAllLLMCache } from '../../services/ai/llmService'
 import { version } from '../../../package.json'
 import './Settings.css'
 
@@ -37,8 +33,6 @@ function formatBytes(bytes) {
 export function Settings() {
   const { themePreference, setTheme } = useTheme()
   const toast = useToast()
-  const { aiEnabled, setAIEnabled } = useAISettings()
-  const { embeddingStatus, loadEmbeddingModel, detectCapabilities, llmStatus, isLLMReady } = useAI()
   const [storageBytes, setStorageBytes] = useState(getStorageUsage)
 
 
@@ -80,87 +74,6 @@ export function Settings() {
           </div>
         </section>
 
-        {/* AI Features */}
-        <section className="settings-section">
-          <h2 className="settings-section-title">
-            <i className="bi bi-stars"></i>
-            AI Features
-          </h2>
-          <div className="settings-option">
-            <div className="settings-option-info">
-              <span className="settings-option-label">Enable AI features</span>
-              <span className="settings-option-desc">
-                AI-powered semantic search and file insights — all processed on your device
-              </span>
-            </div>
-            <label className="toggle-switch">
-              <input
-                type="checkbox"
-                checked={aiEnabled}
-                onChange={(e) => setAIEnabled(e.target.checked)}
-              />
-              <span className="toggle-slider"></span>
-            </label>
-          </div>
-          {aiEnabled && (
-            <>
-              <div className="settings-divider"></div>
-              <div className="settings-option">
-                <div className="settings-option-info">
-                  <span className="settings-option-label">Embedding Model (Search)</span>
-                  <span className="settings-option-desc">
-                    {embeddingStatus.status === 'error'
-                      ? embeddingStatus.message
-                      : 'Powers semantic search across file content'}
-                  </span>
-                </div>
-                <div className="status-action-group">
-                  {embeddingStatus.status === 'unavailable' && (
-                    <button className="btn btn-primary btn-sm" onClick={loadEmbeddingModel}>
-                      <i className="bi bi-download"></i> Download (~23 MB)
-                    </button>
-                  )}
-                  {embeddingStatus.status === 'needs-load' && (
-                    <button className="btn btn-primary btn-sm" onClick={loadEmbeddingModel}>
-                      <i className="bi bi-arrow-repeat"></i> Load
-                    </button>
-                  )}
-                  {embeddingStatus.status === 'loading' ? (
-                    <span className="status-badge status-needs-download">{embeddingStatus.message}</span>
-                  ) : (
-                    <span className={`status-badge status-${embeddingStatus.status === 'ready' ? 'ready' : embeddingStatus.status === 'needs-load' ? 'needs-download' : embeddingStatus.status === 'error' ? 'error' : 'unavailable'}`}>
-                      {embeddingStatus.status === 'ready' ? 'Available'
-                        : embeddingStatus.status === 'checking' ? 'Checking...'
-                        : embeddingStatus.status === 'needs-load' ? 'Cached'
-                        : embeddingStatus.status === 'error' ? 'Error'
-                        : 'Not configured'}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="settings-divider"></div>
-              <div className="settings-option">
-                <div className="settings-option-info">
-                  <span className="settings-option-label">Language Model (Insights)</span>
-                  <span className="settings-option-desc">
-                    Powers file summarization and Q&A — download via the Insights tab in the sidebar
-                  </span>
-                </div>
-                <span className={`status-badge status-${isLLMReady ? 'ready' : llmStatus.status === 'loading' ? 'needs-download' : 'unavailable'}`}>
-                  {isLLMReady ? 'Loaded'
-                    : llmStatus.status === 'loading' ? llmStatus.message
-                    : 'Not loaded'}
-                </span>
-              </div>
-              <div className="settings-divider"></div>
-              <div className="ai-privacy-note">
-                <i className="bi bi-shield-check"></i>
-                <span>All AI processing happens entirely on your device. No file content is ever sent to external servers.</span>
-              </div>
-            </>
-          )}
-        </section>
-
         {/* Privacy & Data */}
         <section className="settings-section">
           <h2 className="settings-section-title">
@@ -188,49 +101,6 @@ export function Settings() {
               <i className="bi bi-trash3"></i> Clear
             </button>
           </div>
-          {aiEnabled && (
-            <>
-              <div className="settings-divider"></div>
-              <div className="settings-option">
-                <div className="settings-option-info">
-                  <span className="settings-option-label">Clear embedding model cache</span>
-                  <span className="settings-option-desc">
-                    Remove downloaded embedding model (~23 MB)
-                  </span>
-                </div>
-                <button className="btn btn-danger btn-sm" onClick={async () => {
-                  const result = await clearModelCache()
-                  if (result.success) {
-                    toast.success('Embedding model cache cleared')
-                    detectCapabilities()
-                  } else {
-                    toast.error('Failed to clear embedding cache')
-                  }
-                }}>
-                  <i className="bi bi-trash3"></i> Clear
-                </button>
-              </div>
-              <div className="settings-divider"></div>
-              <div className="settings-option">
-                <div className="settings-option-info">
-                  <span className="settings-option-label">Clear language model cache</span>
-                  <span className="settings-option-desc">
-                    Remove downloaded LLM models (can be several GB)
-                  </span>
-                </div>
-                <button className="btn btn-danger btn-sm" onClick={async () => {
-                  const cleared = await clearAllLLMCache()
-                  if (cleared.length > 0) {
-                    toast.success(`Cleared ${cleared.length} cached model(s)`)
-                  } else {
-                    toast.info('No cached models found')
-                  }
-                }}>
-                  <i className="bi bi-trash3"></i> Clear
-                </button>
-              </div>
-            </>
-          )}
         </section>
 
         {/* About */}
