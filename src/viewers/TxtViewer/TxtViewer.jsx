@@ -3,6 +3,7 @@ import { marked } from 'marked'
 import { markedHighlight } from 'marked-highlight'
 import hljs from 'highlight.js'
 import { FileContext } from '../../context/FileContext'
+import { SettingsContext } from '../../context/SettingsContext'
 import { useToast } from '../../hooks/useToast'
 import { useFileLoader } from '../../hooks/useFileLoader'
 import { useOptionsHeader } from '../../hooks/useOptionsHeader'
@@ -66,9 +67,10 @@ export function TxtViewer() {
     markSaved
   } = useContext(FileContext)
 
+  const { settings, updateSetting } = useContext(SettingsContext)
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
-  const [viewMode, setViewMode] = useState(null)
+  const [viewMode, setViewMode] = useState(() => settings.viewModes?.[fileType] || null)
 
   // null until file loads; 'edit' | 'split' | 'preview' for md, 'raw' for txt
   const [wordWrap, setWordWrap] = useState(true)
@@ -148,10 +150,15 @@ export function TxtViewer() {
     if (viewMode === 'split') handleSyncScroll('editor')
   }, [viewMode, handleSyncScroll])
 
-  // Set default view mode when file type changes
+  // Set default view mode when file type changes (use cached if available)
   useEffect(() => {
-    setViewMode(isMarkdown ? 'split' : 'raw')
-  }, [isMarkdown])
+    const cached = settings.viewModes?.[fileType]
+    if (cached) {
+      setViewMode(cached)
+    } else {
+      setViewMode(isMarkdown ? 'split' : 'raw')
+    }
+  }, [isMarkdown]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const lines = useMemo(() => {
     if (fileData == null) return []
@@ -181,6 +188,11 @@ export function TxtViewer() {
       return null
     }
   }, [fileData, language])
+
+  const changeViewMode = useCallback((mode) => {
+    setViewMode(mode)
+    updateSetting('viewModes', { ...settings.viewModes, [fileType]: mode })
+  }, [settings.viewModes, fileType, updateSetting])
 
   const handleEditorChange = useCallback((e) => {
     updateData(e.target.value)
@@ -365,19 +377,19 @@ export function TxtViewer() {
       <div className="view-toggle">
         <button
           className={`view-toggle-btn ${activeViewMode === 'edit' ? 'active' : ''}`}
-          onClick={() => setViewMode('edit')}
+          onClick={() => changeViewMode('edit')}
         >
           Edit
         </button>
         <button
           className={`view-toggle-btn ${activeViewMode === 'split' ? 'active' : ''}`}
-          onClick={() => setViewMode('split')}
+          onClick={() => changeViewMode('split')}
         >
           Split
         </button>
         <button
           className={`view-toggle-btn ${activeViewMode === 'preview' ? 'active' : ''}`}
-          onClick={() => setViewMode('preview')}
+          onClick={() => changeViewMode('preview')}
         >
           Preview
         </button>
@@ -406,13 +418,13 @@ export function TxtViewer() {
       <div className="view-toggle">
         <button
           className={`view-toggle-btn ${activeViewMode === 'raw' ? 'active' : ''}`}
-          onClick={() => setViewMode('raw')}
+          onClick={() => changeViewMode('raw')}
         >
           View
         </button>
         <button
           className={`view-toggle-btn ${activeViewMode === 'edit' ? 'active' : ''}`}
-          onClick={() => setViewMode('edit')}
+          onClick={() => changeViewMode('edit')}
         >
           Edit
         </button>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useContext, lazy, Suspense } from 'react'
 import { FileRoutingContext } from '../../context/FileContext'
+import { useSettings } from '../../hooks/useSettings'
 import { OptionsHeader } from '../OptionsHeader/OptionsHeader'
 
 const CsvViewer = lazy(() => import('../../viewers/CsvViewer').then(m => ({ default: m.CsvViewer })))
@@ -20,6 +21,7 @@ function ViewerLoading() {
 export function ViewContainer() {
   const [activeViewer, setActiveViewer] = useState(null)
   const { fileType, loadFile, detectFileType } = useContext(FileRoutingContext)
+  const { settings, updateSetting } = useSettings()
 
   // Determine viewer based on URL params or fileType
   useEffect(() => {
@@ -38,6 +40,9 @@ export function ViewContainer() {
       // Detect type from URL extension
       const detectedType = detectFileType(url)
       setActiveViewer(detectedType)
+    } else if (settings.lastViewer) {
+      // Restore cached viewer
+      setActiveViewer(settings.lastViewer)
     } else {
       // No URL, default to FileBrowser
       setActiveViewer('browser')
@@ -50,6 +55,13 @@ export function ViewContainer() {
       setActiveViewer(fileType)
     }
   }, [fileType])
+
+  // Cache the active viewer in settings
+  useEffect(() => {
+    if (activeViewer && activeViewer !== 'settings') {
+      updateSetting('lastViewer', activeViewer)
+    }
+  }, [activeViewer, updateSetting])
 
   // Handle file selection from FileBrowser
   const handleFileSelectFromBrowser = useCallback(async (file, handle, ext) => {

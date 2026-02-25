@@ -1,5 +1,6 @@
 import { useContext, useEffect, useCallback, useState, useMemo, useRef, memo } from 'react'
 import { FileContext } from '../../context/FileContext'
+import { SettingsContext } from '../../context/SettingsContext'
 import { useToast } from '../../hooks/useToast'
 import { useFileLoader } from '../../hooks/useFileLoader'
 import { useOptionsHeader } from '../../hooks/useOptionsHeader'
@@ -100,9 +101,10 @@ export function JsonViewer() {
     resetFile
   } = useContext(FileContext)
 
+  const { settings, updateSetting } = useContext(SettingsContext)
   const toast = useToast()
   const { loadFromFile, openFilePicker, isValidFile } = useFileLoader()
-  const [viewMode, setViewMode] = useState('tree') // 'tree' or 'raw'
+  const [viewMode, setViewMode] = useState(() => settings.viewModes?.json || 'tree')
   const [rawText, setRawText] = useState('')
   const rawPreRef = useRef(null)
   const rawLines = useMemo(() => rawText ? rawText.split('\n') : [], [rawText])
@@ -289,13 +291,13 @@ export function JsonViewer() {
           <div className="view-toggle">
             <button
               className={`view-toggle-btn ${viewMode === 'tree' ? 'active' : ''}`}
-              onClick={() => setViewMode('tree')}
+              onClick={() => { setViewMode('tree'); updateSetting('viewModes', { ...settings.viewModes, json: 'tree' }) }}
             >
               Tree
             </button>
             <button
               className={`view-toggle-btn ${viewMode === 'raw' ? 'active' : ''}`}
-              onClick={() => setViewMode('raw')}
+              onClick={() => { setViewMode('raw'); updateSetting('viewModes', { ...settings.viewModes, json: 'raw' }) }}
             >
               Raw
             </button>

@@ -4,6 +4,8 @@ const STORAGE_KEY = 'filelens-settings'
 
 const defaultSettings = {
   theme: 'system',
+  lastViewer: null,
+  viewModes: {},
 }
 
 function loadSettings() {
