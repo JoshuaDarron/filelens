@@ -7,6 +7,7 @@
   border-bottom: 1px solid var(--border-color);
   gap: 8px;
   padding-right: 12px;
+  flex-shrink: 0;
 }
 
 .options-header-controls {

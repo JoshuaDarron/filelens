@@ -7,7 +7,9 @@
 .browser-container {
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 73px);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* ========================================
