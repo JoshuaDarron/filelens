@@ -11,7 +11,7 @@ const NATIVE_TYPES = {
 // Text-like file extensions that should open in TxtViewer
 const TEXT_EXTENSIONS = new Set([
   // Programming
-  'py', 'js', 'jsx', 'ts', 'tsx', 'java', 'c', 'cpp', 'h', 'hpp', 'cs',
+  'py', 'js', 'mjs', 'cjs', 'jsx', 'ts', 'mts', 'cts', 'tsx', 'java', 'c', 'cpp', 'h', 'hpp', 'cs',
   'go', 'rs', 'rb', 'php', 'swift', 'kt', 'scala', 'r', 'pl', 'lua',
   'dart', 'zig', 'ex', 'exs', 'hs', 'ml', 'clj', 'lisp', 'vim', 'v', 'm',
   // Web / markup
