@@ -1,56 +1,67 @@
 # FileLens
-A Chrome extension for viewing, editing, and analyzing various file types (CSV, JSON, TXT, Markdown) with light/dark mode support. All processing happens on-device for a privacy-first experience.
 
-## Summary
-- [Getting Started](#getting-started)
-- [Authors](#authors)
-- [License](#license)
-- [Acknowledgments](#acknowledgments)
+A Chrome extension for viewing, editing, and analyzing various file types with light/dark mode support. All processing happens on-device for a privacy-first experience.
+
+## Features
+
+- **CSV Viewer** — Tabular view with inline editing, add/delete rows, pagination, and CSV export
+- **JSON Viewer** — Collapsible tree view with syntax highlighting
+- **Text & Markdown Viewer** — Raw text editing and rendered Markdown with syntax highlighting for 30+ languages
+- **File Browser** — Navigate local directories and open files directly
+- **50+ File Types** — Opens code and config files (`.js`, `.py`, `.yaml`, `.toml`, `.xml`, `.sh`, and many more) in the text viewer
+- **Dark Mode** — System-aware theme with manual toggle
+- **Drag & Drop** — Drop files anywhere to open them
+- **File Caching** — SHA-256 validated cache for recently opened files
+- **Privacy-First** — No data leaves your machine
 
 ## Getting Started
-These instructions will get you a copy of FileLens up and running on your local machine for development and testing purposes.
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) - JavaScript runtime
-- [npm](https://www.npmjs.com/) - Node package manager
-- [Google Chrome](https://www.google.com/chrome/) - Browser to run the extension
 
-### Environment Setup
+- [Node.js](https://nodejs.org/) (v18+)
+- [npm](https://www.npmjs.com/)
+- [Google Chrome](https://www.google.com/chrome/)
 
-**Step 1:** Navigate to the project directory
+### Development
+
 ```bash
-cd ./filelens
-```
-
-**Step 2:** Install packages
-```bash
+# Install dependencies
 npm install
-```
 
-**Step 3:** Start the development server
-```bash
+# Start dev server
 npm run dev
-```
 
-**Step 4:** Build the extension
-```bash
+# Run tests
+npm test
+
+# Production build
 npm run build
+
+# Bundle analysis
+npm run analyze
 ```
 
-**Step 5:** Load the extension into Chrome
-1. Open Chrome and navigate to `chrome://extensions/`
-2. Enable **Developer mode** (toggle in the top right)
-3. Click **Load unpacked** and select the `dist/` folder
-4. Enable **Allow access to file URLs** in the extension's details
+### Load into Chrome
 
-### Other Setups
-- [Client](https://github.com/joshuadarron) - Setup
+1. Run `npm run build`
+2. Open `chrome://extensions/`
+3. Enable **Developer mode** (top right)
+4. Click **Load unpacked** and select the `dist/` folder
+5. Enable **Allow access to file URLs** in the extension's details
+
+## Tech Stack
+
+- **React 18** with lazy-loaded viewers
+- **Vite 5** for build and dev server
+- **Highlight.js** for syntax highlighting
+- **Marked** for Markdown rendering
+- **Vitest** for unit testing
+- **Chrome Extension Manifest V3**
 
 ## Authors
-- **Joshua Phillips** - [Portfolio](https://joshuadarron.com)
+
+- **Joshua Phillips** — [Portfolio](https://joshuadarron.com)
 
 ## License
-This project is licensed under the CC0 1.0 Universal Creative Commons License - see the [LICENSE.md](LICENSE.md) file for details
 
-## Acknowledgments
-- Hat tip to anyone whose code was used
+This project is licensed under the CC0 1.0 Universal Creative Commons License — see the [LICENSE.md](LICENSE.md) file for details.
