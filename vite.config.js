@@ -116,7 +116,10 @@ export default defineConfig({
           if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
             return 'vendor-react'
           }
-          if (id.includes('node_modules/marked') || id.includes('node_modules/highlight.js')) {
+          if (id.includes('node_modules/highlight.js')) {
+            return 'vendor-hljs'
+          }
+          if (id.includes('node_modules/marked')) {
             return 'vendor-markdown'
           }
         }

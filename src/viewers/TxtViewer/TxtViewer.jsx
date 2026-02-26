@@ -1,7 +1,5 @@
 import { useContext, useEffect, useCallback, useState, useMemo, useRef } from 'react'
-import { marked } from 'marked'
-import { markedHighlight } from 'marked-highlight'
-import hljs from 'highlight.js'
+import hljs from '../../utils/hljs'
 import { FileContext } from '../../context/FileContext'
 import { SettingsContext } from '../../context/SettingsContext'
 import { useToast } from '../../hooks/useToast'
@@ -40,18 +38,33 @@ function getLanguage(filename) {
   return null
 }
 
-marked.use(
-  markedHighlight({
-    langPrefix: 'hljs language-',
-    highlight(code, lang) {
-      if (lang && hljs.getLanguage(lang)) {
-        return hljs.highlight(code, { language: lang }).value
-      }
-      return hljs.highlightAuto(code).value
-    }
-  }),
-  { breaks: true, gfm: true }
-)
+// Lazy-load marked + marked-highlight only when needed (for .md files)
+let markdownLoaderPromise = null
+
+function loadMarkdownParser() {
+  if (!markdownLoaderPromise) {
+    markdownLoaderPromise = Promise.all([
+      import('marked'),
+      import('marked-highlight'),
+    ]).then(([{ marked }, { markedHighlight }]) => {
+      marked.use(
+        markedHighlight({
+          langPrefix: 'hljs language-',
+          highlight(code, lang) {
+            if (lang && hljs.getLanguage(lang)) {
+              return hljs.highlight(code, { language: lang }).value
+            }
+            // Return plain code instead of expensive highlightAuto
+            return code
+          }
+        }),
+        { breaks: true, gfm: true }
+      )
+      return marked
+    })
+  }
+  return markdownLoaderPromise
+}
 
 export function TxtViewer() {
   const {
@@ -160,6 +173,24 @@ export function TxtViewer() {
     }
   }, [isMarkdown]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const lineCount = useMemo(() => {
+    if (fileData == null) return 0
+    let count = 1
+    for (let i = 0; i < fileData.length; i++) {
+      if (fileData[i] === '\n') count++
+    }
+    return count
+  }, [fileData])
+
+  // Single text node for line numbers instead of N individual spans
+  const lineNumberText = useMemo(() => {
+    if (lineCount === 0) return ''
+    const nums = new Array(lineCount)
+    for (let i = 0; i < lineCount; i++) nums[i] = i + 1
+    return nums.join('\n')
+  }, [lineCount])
+
+  // Keep lines array only for raw text view (needed for per-line hover effects)
   const lines = useMemo(() => {
     if (fileData == null) return []
     return fileData.split('\n')
@@ -167,15 +198,21 @@ export function TxtViewer() {
 
   const [renderedHtml, setRenderedHtml] = useState('')
 
+  // Lazy-load markdown parser and render asynchronously
   useEffect(() => {
     if (fileData == null || !isMarkdown) {
       setRenderedHtml('')
       return
     }
+    let cancelled = false
     const timer = setTimeout(() => {
-      setRenderedHtml(marked.parse(fileData))
+      loadMarkdownParser().then(marked => {
+        if (!cancelled) {
+          setRenderedHtml(marked.parse(fileData))
+        }
+      })
     }, 250)
-    return () => clearTimeout(timer)
+    return () => { cancelled = true; clearTimeout(timer) }
   }, [fileData, isMarkdown])
 
   const language = useMemo(() => getLanguage(filename), [filename])
@@ -366,7 +403,7 @@ export function TxtViewer() {
     <>
       <div className="stat">
         <i className="bi bi-text-left"></i>
-        <span>{lines.length} lines</span>
+        <span>{lineCount} lines</span>
       </div>
       {isModified && (
         <div className="stat">
@@ -407,7 +444,7 @@ export function TxtViewer() {
     <>
       <div className="stat">
         <i className="bi bi-text-left"></i>
-        <span>{lines.length} lines</span>
+        <span>{lineCount} lines</span>
       </div>
       {isModified && (
         <div className="stat">
@@ -459,11 +496,7 @@ export function TxtViewer() {
                   className="md-editor-pane"
                   style={activeViewMode === 'split' ? { flex: `0 0 ${splitPosition}%` } : undefined}
                 >
-                  <div className="line-numbers md-line-numbers" ref={mdLineNumRef}>
-                    {lines.map((_, i) => (
-                      <span key={i} className="line-number">{i + 1}</span>
-                    ))}
-                  </div>
+                  <div className="line-numbers md-line-numbers" ref={mdLineNumRef}>{lineNumberText}</div>
                   <textarea
                     ref={editorRef}
                     className="md-editor-textarea"
@@ -495,11 +528,7 @@ export function TxtViewer() {
             <div className="txt-container">
               {activeViewMode === 'edit' ? (
                 <div className="txt-editor-wrapper">
-                  <div className="line-numbers" ref={editLineNumRef}>
-                    {lines.map((_, i) => (
-                      <span key={i} className="line-number">{i + 1}</span>
-                    ))}
-                  </div>
+                  <div className="line-numbers" ref={editLineNumRef}>{lineNumberText}</div>
                   <textarea
                     className="txt-editor-textarea"
                     value={fileData}
@@ -511,11 +540,7 @@ export function TxtViewer() {
                 </div>
               ) : (
                 <div className="txt-wrapper">
-                  <div className="line-numbers">
-                    {lines.map((_, index) => (
-                      <span key={index} className="line-number">{index + 1}</span>
-                    ))}
-                  </div>
+                  <div className="line-numbers">{lineNumberText}</div>
                   <div className={`txt-content ${!wordWrap ? 'no-wrap' : ''}`}>
                     {highlightedHtml ? (
                       <code

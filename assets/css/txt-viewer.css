@@ -49,15 +49,7 @@
   line-height: 1.6;
   color: var(--text-muted);
   user-select: none;
-}
-
-.line-number {
-  display: block;
-}
-
-.line-number.active {
-  color: var(--text-primary);
-  background: var(--bg-accent);
+  white-space: pre;
 }
 
 /* ========================================
