@@ -2,18 +2,6 @@
 
 A Chrome extension for viewing, editing, and analyzing various file types with light/dark mode support. All processing happens on-device for a privacy-first experience.
 
-## Features
-
-- **CSV Viewer** — Tabular view with inline editing, add/delete rows, pagination, and CSV export
-- **JSON Viewer** — Collapsible tree view with syntax highlighting
-- **Text & Markdown Viewer** — Raw text editing and rendered Markdown with syntax highlighting for 30+ languages
-- **File Browser** — Navigate local directories and open files directly
-- **50+ File Types** — Opens code and config files (`.js`, `.py`, `.yaml`, `.toml`, `.xml`, `.sh`, and many more) in the text viewer
-- **Dark Mode** — System-aware theme with manual toggle
-- **Drag & Drop** — Drop files anywhere to open them
-- **File Caching** — SHA-256 validated cache for recently opened files
-- **Privacy-First** — No data leaves your machine
-
 ## Getting Started
 
 ### Prerequisites
@@ -48,15 +36,6 @@ npm run analyze
 3. Enable **Developer mode** (top right)
 4. Click **Load unpacked** and select the `dist/` folder
 5. Enable **Allow access to file URLs** in the extension's details
-
-## Tech Stack
-
-- **React 18** with lazy-loaded viewers
-- **Vite 5** for build and dev server
-- **Highlight.js** for syntax highlighting
-- **Marked** for Markdown rendering
-- **Vitest** for unit testing
-- **Chrome Extension Manifest V3**
 
 ## Authors
 
