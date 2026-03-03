@@ -9,6 +9,7 @@ export function ThemeToggle() {
       className="theme-toggle"
       onClick={toggleTheme}
       title="Toggle theme"
+      aria-label="Toggle theme"
     >
       <i className="bi bi-moon-fill theme-icon-dark"></i>
       <i className="bi bi-brightness-high-fill theme-icon-light"></i>

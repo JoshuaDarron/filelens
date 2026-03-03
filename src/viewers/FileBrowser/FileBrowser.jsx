@@ -552,6 +552,7 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
               value={sortConfig.key}
               onChange={(e) => setSortConfig({ key: e.target.value, direction: sortConfig.direction })}
               title="Sort by"
+              aria-label="Sort by"
             >
               <option value="name">Name</option>
               <option value="size">Size</option>
@@ -562,6 +563,7 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
               className="grid-sort-direction"
               onClick={() => setSortConfig(prev => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' }))}
               title={sortConfig.direction === 'asc' ? 'Ascending' : 'Descending'}
+              aria-label={sortConfig.direction === 'asc' ? 'Sort ascending' : 'Sort descending'}
             >
               <i className={`bi ${sortConfig.direction === 'asc' ? 'bi-sort-up' : 'bi-sort-down'}`}></i>
             </button>
@@ -571,6 +573,7 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
               className={`view-mode-btn ${viewMode === 'list' ? 'active' : ''}`}
               onClick={() => { setViewMode('list'); localStorage.setItem('fileBrowser-viewMode', 'list') }}
               title="List view"
+              aria-label="List view"
             >
               <i className="bi bi-list"></i>
             </button>
@@ -578,6 +581,7 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
               className={`view-mode-btn ${viewMode === 'grid' ? 'active' : ''}`}
               onClick={() => { setViewMode('grid'); localStorage.setItem('fileBrowser-viewMode', 'grid') }}
               title="Grid view"
+              aria-label="Grid view"
             >
               <i className="bi bi-grid"></i>
             </button>
@@ -590,12 +594,14 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search files"
             />
             {searchQuery && (
               <button
                 className="browser-search-clear"
                 onClick={clearSearch}
                 title="Clear search"
+                aria-label="Clear search"
               >
                 <i className="bi bi-x-lg"></i>
               </button>
@@ -620,20 +626,20 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
           ) : (
             <>
               {viewMode === 'list' && (
-                <div className="file-list-header">
-                  <span onClick={() => handleSort('name')}>
+                <div className="file-list-header" role="row">
+                  <span role="columnheader" tabIndex={0} onClick={() => handleSort('name')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSort('name') } }} aria-sort={sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}>
                     Name
                     <i className={`bi ${getSortIcon('name')} sort-icon ${sortConfig.key === 'name' ? 'active' : ''}`}></i>
                   </span>
-                  <span onClick={() => handleSort('size')}>
+                  <span role="columnheader" tabIndex={0} onClick={() => handleSort('size')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSort('size') } }} aria-sort={sortConfig.key === 'size' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}>
                     Size
                     <i className={`bi ${getSortIcon('size')} sort-icon ${sortConfig.key === 'size' ? 'active' : ''}`}></i>
                   </span>
-                  <span onClick={() => handleSort('modified')}>
+                  <span role="columnheader" tabIndex={0} onClick={() => handleSort('modified')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSort('modified') } }} aria-sort={sortConfig.key === 'modified' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}>
                     Modified
                     <i className={`bi ${getSortIcon('modified')} sort-icon ${sortConfig.key === 'modified' ? 'active' : ''}`}></i>
                   </span>
-                  <span onClick={() => handleSort('type')}>
+                  <span role="columnheader" tabIndex={0} onClick={() => handleSort('type')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSort('type') } }} aria-sort={sortConfig.key === 'type' ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}>
                     Type
                     <i className={`bi ${getSortIcon('type')} sort-icon ${sortConfig.key === 'type' ? 'active' : ''}`}></i>
                   </span>
@@ -651,12 +657,20 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
                   </button>
                 </div>
               ) : (
-                <div className={`file-list ${viewMode === 'grid' ? 'grid-view' : ''}`}>
+                <div className={`file-list ${viewMode === 'grid' ? 'grid-view' : ''}`} role="list">
                   {sortedFiles.map((file, index) => (
                     <div
                       key={index}
                       className="file-item"
+                      role="listitem"
+                      tabIndex={0}
                       onClick={() => handleFileClick(file)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleFileClick(file)
+                        }
+                      }}
                       onContextMenu={(e) => handleContextMenu(e, file)}
                     >
                       <div className="file-item-name">
@@ -684,24 +698,25 @@ export function FileBrowser({ onFileSelect, dirUrl }) {
             <div
               ref={contextMenuRef}
               className="context-menu"
+              role="menu"
               style={{ left: contextMenu.x, top: contextMenu.y }}
             >
-              <div className="context-menu-item" onClick={() => handleContextMenuAction('open')}>
+              <div className="context-menu-item" role="menuitem" onClick={() => handleContextMenuAction('open')}>
                 <i className="bi bi-folder2-open context-menu-item-icon"></i>
                 Open
               </div>
               {contextMenu.file?.kind === 'file' && (
-                <div className="context-menu-item" onClick={() => handleContextMenuAction('open-new-tab')}>
+                <div className="context-menu-item" role="menuitem" onClick={() => handleContextMenuAction('open-new-tab')}>
                   <i className="bi bi-box-arrow-up-right context-menu-item-icon"></i>
                   Open in New Tab
                 </div>
               )}
               <div className="context-menu-separator"></div>
-              <div className="context-menu-item" onClick={() => handleContextMenuAction('copy-path')}>
+              <div className="context-menu-item" role="menuitem" onClick={() => handleContextMenuAction('copy-path')}>
                 <i className="bi bi-clipboard context-menu-item-icon"></i>
                 Copy Path
               </div>
-              <div className="context-menu-item" onClick={() => handleContextMenuAction('copy-name')}>
+              <div className="context-menu-item" role="menuitem" onClick={() => handleContextMenuAction('copy-name')}>
                 <i className="bi bi-type context-menu-item-icon"></i>
                 Copy Name
               </div>

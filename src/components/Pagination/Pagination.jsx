@@ -22,6 +22,7 @@ export function Pagination({
           className="rows-select"
           value={rowsPerPage}
           onChange={(e) => onRowsPerPageChange(parseInt(e.target.value))}
+          aria-label="Rows per page"
         >
           {rowsPerPageOptions.map(option => (
             <option key={option} value={option}>{option}</option>
@@ -39,6 +40,7 @@ export function Pagination({
             onClick={() => onPageChange(1)}
             disabled={isFirstPage}
             title="First page"
+            aria-label="First page"
           >
             <i className="bi bi-chevron-double-left"></i>
           </button>
@@ -47,6 +49,7 @@ export function Pagination({
             onClick={() => onPageChange(currentPage - 1)}
             disabled={isFirstPage}
             title="Previous page"
+            aria-label="Previous page"
           >
             <i className="bi bi-chevron-left"></i>
           </button>
@@ -64,6 +67,8 @@ export function Pagination({
                   key={page.value}
                   className={`pagination-btn ${page.value === currentPage ? 'active' : ''}`}
                   onClick={() => onPageChange(page.value)}
+                  aria-label={`Page ${page.value}`}
+                  aria-current={page.value === currentPage ? 'page' : undefined}
                 >
                   {page.value}
                 </button>
@@ -75,6 +80,7 @@ export function Pagination({
             onClick={() => onPageChange(currentPage + 1)}
             disabled={isLastPage}
             title="Next page"
+            aria-label="Next page"
           >
             <i className="bi bi-chevron-right"></i>
           </button>
@@ -83,6 +89,7 @@ export function Pagination({
             onClick={() => onPageChange(totalPages)}
             disabled={isLastPage}
             title="Last page"
+            aria-label="Last page"
           >
             <i className="bi bi-chevron-double-right"></i>
           </button>

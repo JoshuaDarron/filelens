@@ -309,7 +309,7 @@ export function CsvViewer() {
               <i className="bi bi-floppy"></i> Save
             </button>
           )}
-          <button className="btn btn-success" onClick={handleExport}>
+          <button className="btn btn-success" onClick={handleExport} aria-label="Export CSV">
             <i className="bi bi-download"></i>
           </button>
         </>

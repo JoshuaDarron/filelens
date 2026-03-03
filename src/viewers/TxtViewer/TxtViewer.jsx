@@ -436,7 +436,7 @@ export function TxtViewer() {
           <i className="bi bi-floppy"></i> Save
         </button>
       )}
-      <button className="btn btn-success" onClick={handleExport}>
+      <button className="btn btn-success" onClick={handleExport} aria-label="Export file">
         <i className="bi bi-download"></i>
       </button>
     </>
@@ -470,6 +470,7 @@ export function TxtViewer() {
         className="btn btn-outline"
         onClick={() => setWordWrap(!wordWrap)}
         title={wordWrap ? 'Disable word wrap' : 'Enable word wrap'}
+        aria-label={wordWrap ? 'Disable word wrap' : 'Enable word wrap'}
       >
         <i className={`bi ${wordWrap ? 'bi-text-wrap' : 'bi-text-left'}`}></i>
       </button>
@@ -478,7 +479,7 @@ export function TxtViewer() {
           <i className="bi bi-floppy"></i> Save
         </button>
       )}
-      <button className="btn btn-success" onClick={handleExport}>
+      <button className="btn btn-success" onClick={handleExport} aria-label="Export file">
         <i className="bi bi-download"></i>
       </button>
     </>

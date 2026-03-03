@@ -26,7 +26,7 @@ export const Navbar = memo(function Navbar() {
     <header className="navbar">
       <div className="navbar-left">
         {parentDirUrl && (
-          <a href={parentDirUrl} className="btn btn-outline back-btn" title="Back to folder">
+          <a href={parentDirUrl} className="btn btn-outline back-btn" title="Back to folder" aria-label="Back to folder">
             <i className="bi bi-arrow-left"></i>
           </a>
         )}
@@ -34,6 +34,7 @@ export const Navbar = memo(function Navbar() {
           <button
             className="btn btn-outline back-btn"
             title="Back"
+            aria-label="Back"
             onClick={() => window.history.length > 1 ? window.history.back() : (window.location.search = '?type=directory')}
           >
             <i className="bi bi-arrow-left"></i>
@@ -45,6 +46,7 @@ export const Navbar = memo(function Navbar() {
           href={`${window.location.pathname}?type=settings`}
           className="btn btn-outline settings-gear-btn"
           title="Settings"
+          aria-label="Settings"
         >
           <i className="bi bi-gear"></i>
         </a>

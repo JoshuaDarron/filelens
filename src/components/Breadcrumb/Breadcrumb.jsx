@@ -36,7 +36,7 @@ export function Breadcrumb({ items, onNavigate }) {
       <span key={originalIndex} className="breadcrumb-segment">
         {showSeparator && <span className="breadcrumb-separator">/</span>}
         {isLast ? (
-          <span className="breadcrumb-item current">
+          <span className="breadcrumb-item current" aria-current="page">
             {item.name}
           </span>
         ) : item.url ? (
@@ -47,7 +47,15 @@ export function Breadcrumb({ items, onNavigate }) {
         ) : (
           <span
             className="breadcrumb-item"
+            role="button"
+            tabIndex={0}
             onClick={() => onNavigate && onNavigate(originalIndex)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                onNavigate && onNavigate(originalIndex)
+              }
+            }}
           >
             {originalIndex === 0 && <i className="bi bi-folder2"></i>}
             {item.name}
@@ -60,9 +68,9 @@ export function Breadcrumb({ items, onNavigate }) {
   // No truncation needed for 5 or fewer segments
   if (items.length <= 5) {
     return (
-      <div className="breadcrumb">
+      <nav className="breadcrumb" aria-label="Breadcrumb">
         {items.map((item, index) => renderSegment(item, index, index > 0))}
-      </div>
+      </nav>
     )
   }
 
@@ -72,7 +80,7 @@ export function Breadcrumb({ items, onNavigate }) {
   const tailItems = items.slice(items.length - 2)
 
   return (
-    <div className="breadcrumb">
+    <nav className="breadcrumb" aria-label="Breadcrumb">
       {headItems.map((item, i) => renderSegment(item, i, i > 0))}
 
       <span className="breadcrumb-segment">
@@ -80,7 +88,17 @@ export function Breadcrumb({ items, onNavigate }) {
         <span className="breadcrumb-ellipsis-wrapper" ref={dropdownRef}>
           <span
             className="breadcrumb-item breadcrumb-ellipsis"
+            role="button"
+            tabIndex={0}
+            aria-expanded={dropdownOpen}
+            aria-label="Show hidden path segments"
             onClick={() => setDropdownOpen(!dropdownOpen)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setDropdownOpen(!dropdownOpen)
+              }
+            }}
           >
             &hellip;
           </span>
@@ -118,6 +136,6 @@ export function Breadcrumb({ items, onNavigate }) {
         const originalIndex = items.length - 2 + i
         return renderSegment(item, originalIndex, true)
       })}
-    </div>
+    </nav>
   )
 }

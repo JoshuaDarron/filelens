@@ -31,14 +31,14 @@ export function Toast({ toast, onClose }) {
   const className = `toast ${toast.type}${toast.isHiding ? ' hide' : ' show'}`
 
   return (
-    <div className={className} data-toast-id={toast.id}>
+    <div className={className} data-toast-id={toast.id} role={toast.type === 'error' ? 'alert' : 'status'}>
       <div className="toast-icon">{getIcon()}</div>
       <div className="toast-content">
         {toast.title && <div className="toast-title">{toast.title}</div>}
         <div className="toast-message">{toast.message}</div>
       </div>
       {toast.closable && (
-        <button className="toast-close" onClick={() => onClose(toast.id)}>
+        <button className="toast-close" onClick={() => onClose(toast.id)} aria-label="Close notification">
           <i className="bi bi-x"></i>
         </button>
       )}

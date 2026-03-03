@@ -36,7 +36,12 @@ const JsonNode = memo(function JsonNode({ data, path = '', level = 0, collapsed 
       <span>
         <span
           className={`json-collapsible ${isCollapsed ? 'collapsed' : ''}`}
+          role="button"
+          tabIndex={0}
+          aria-expanded={!isCollapsed}
+          aria-label={isCollapsed ? 'Expand' : 'Collapse'}
           onClick={() => setIsCollapsed(!isCollapsed)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsCollapsed(!isCollapsed) } }}
         />
         <span className="json-bracket">[</span>
         {isCollapsed ? (
@@ -66,7 +71,12 @@ const JsonNode = memo(function JsonNode({ data, path = '', level = 0, collapsed 
       <span>
         <span
           className={`json-collapsible ${isCollapsed ? 'collapsed' : ''}`}
+          role="button"
+          tabIndex={0}
+          aria-expanded={!isCollapsed}
+          aria-label={isCollapsed ? 'Expand' : 'Collapse'}
           onClick={() => setIsCollapsed(!isCollapsed)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsCollapsed(!isCollapsed) } }}
         />
         <span className="json-bracket">{'{'}</span>
         {isCollapsed ? (
@@ -306,10 +316,11 @@ export function JsonViewer() {
             className="btn btn-outline"
             onClick={handleCopy}
             title="Copy to clipboard"
+            aria-label="Copy to clipboard"
           >
             <i className="bi bi-clipboard"></i>
           </button>
-          <button className="btn btn-success" onClick={handleExport}>
+          <button className="btn btn-success" onClick={handleExport} aria-label="Export JSON">
             <i className="bi bi-download"></i>
           </button>
         </>

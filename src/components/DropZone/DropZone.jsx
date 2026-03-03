@@ -65,6 +65,13 @@ export function DropZone({
     onClick?.()
   }
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onClick?.()
+    }
+  }
+
   return (
     <div
       className={`drop-zone ${isDragOver ? 'drag-over' : ''}`}
@@ -73,6 +80,10 @@ export function DropZone({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label="Drop file here or click to browse"
     >
       {children || (
         <div className="drop-zone-content">
